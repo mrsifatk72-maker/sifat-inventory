@@ -54,17 +54,17 @@ COURSES = [
     ("4", "Pedodontics Made Easy", "Child dental care and management, simplified for finals.", None, None, "paediatric pediatric children"),
 ]
 
-# (name, subject tag, credentials, photo or None, lead?)
+# (name, subject tag, credentials, photo or None) — all mentors shown equally
 MENTORS = [
-    ("Dr. M R Sifat", "Medicine", "MBBS (DMC), BCS (Health), FCPS P-1 (Medicine), MRCP P-2 (UK). DMC, Session 2014-15. Leads the Essential Medicine for BDS course.", "sifat.jpg", True),
-    ("Dr. Tanim Ahmed", "Oral Patho · Perio · OMS · Conservative", "MDCH, Session 2018-19. Expertise: Oral Pathology & Medicine, Periodontology, Oral & Maxillofacial Surgery, Conservative & Endodontics.", "tanim.jpg", False),
-    ("Dr. Faiza Tabassum", "Orthodontics", "FCPS Part II Trainee (Dhaka Dental College), Session 2017-18. 3rd in BDS Final Prof (DU). Honours in OMS, Orthodontics, Prosthodontics, Conservative, General Surgery and Dental Anatomy.", None, False),
-    ("Dr. Mahmudul Hasan Siyam", "Prosthodontics", "SSMC, DU. Session 2018-19.", "siyam.jpg", False),
-    ("Dr. Taslima Jahan Lubna", "Orthodontics", "Marks Dental College, Session 2010-11. Pursuing MFDS RCSEng Part-1 and FCPS Part-1 (Orthodontics).", None, False),
-    ("Dr. Jannatul Ferdous", "Conservative & Endo", "IMC, Session 2014-15. MS at BMU (Conservative Dentistry & Endodontics). Honours in Dental Public Health and Medicine.", None, False),
-    ("Firoj Ahamed Fahim", "SDM & Dental Anatomy", "Final year BDS, Sir Salimullah Medical College (Dental Unit), Session 2021-22.", "fahim.jpg", False),
-    ("Sirajum Munir", "General Anatomy", "Pioneer Dental College (PDC), Session 2023-24.", "munir.jpg", False),
-    ("Khondkar Adlul Haque", "Biochemistry", "Pioneer Dental College (PDC), Session 2023-24.", "adlul.jpg", False),
+    ("Dr. Tanim Ahmed", "Oral Patho · Perio · OMS · Conservative", "MDCH, Session 2018-19. Expertise: Oral Pathology & Medicine, Periodontology, Oral & Maxillofacial Surgery, Conservative & Endodontics.", "tanim.jpg"),
+    ("Dr. M R Sifat", "Medicine", "MBBS (DMC), BCS (Health), FCPS P-1 (Medicine), MRCP P-2 (UK). DMC, Session 2014-15.", "sifat.jpg"),
+    ("Firoj Ahamed Fahim", "SDM & Dental Anatomy", "Final year BDS, Sir Salimullah Medical College (Dental Unit), Session 2021-22.", "fahim.jpg"),
+    ("Sirajum Munir", "General Anatomy", "Pioneer Dental College (PDC), Session 2023-24.", "munir.jpg"),
+    ("Khondkar Adlul Haque", "Biochemistry", "Pioneer Dental College (PDC), Session 2023-24.", "adlul.jpg"),
+    ("Dr. Mahmudul Hasan Siyam", "Prosthodontics", "SSMC, DU. Session 2018-19.", "siyam.jpg"),
+    ("Dr. Faiza Tabassum", "Orthodontics", "FCPS Part II Trainee (Dhaka Dental College), Session 2017-18. 3rd in BDS Final Prof (DU). Honours in OMS, Orthodontics, Prosthodontics, Conservative, General Surgery and Dental Anatomy.", None),
+    ("Dr. Taslima Jahan Lubna", "Orthodontics", "Marks Dental College, Session 2010-11. Pursuing MFDS RCSEng Part-1 and FCPS Part-1 (Orthodontics).", None),
+    ("Dr. Jannatul Ferdous", "Conservative & Endo", "IMC, Session 2014-15. MS at BMU (Conservative Dentistry & Endodontics). Honours in Dental Public Health and Medicine.", None),
 ]
 
 ARROW = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" '
@@ -98,11 +98,10 @@ def initials(name):
     return (parts[0][0] + parts[-1][0]).upper()
 
 
-def mentor_html(name, tag, cred, photo, lead):
+def mentor_html(name, tag, cred, photo):
     media = (f'<img src="{data_uri(photo)}" alt="{e(name)}" loading="lazy" decoding="async">' if photo
              else f'<div class="mono" aria-hidden="true"><span>{initials(name)}</span></div>')
-    cls = "mentor rv lead" if lead else "mentor rv"
-    return (f'      <article class="{cls}" tabindex="0">{media}'
+    return (f'      <article class="mentor rv" tabindex="0">{media}'
             f'<button class="more" aria-label="Show credentials of {e(name)}" aria-expanded="false">i</button>'
             f'<div class="info"><span class="tag">{e(tag)}</span><h3>{e(name)}</h3><p>{e(cred)}</p></div></article>')
 

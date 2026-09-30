@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MediVerse Dental — Future Dentistry Begins Here</title>
-<meta name="description" content="MediVerse Dental — phase-wise BDS courses, expert dentist mentors and exam-focused notes for dental students across Bangladesh.">
+<meta name="description" content="MediVerse Dental — phase-wise BDS courses, expert mentors and exam-focused notes for dental students across Bangladesh.">
 <meta name="theme-color" content="#060E1F">
 <meta property="og:title" content="MediVerse Dental — Future Dentistry Begins Here">
 <meta property="og:description" content="Phase-wise BDS courses, expert mentors and exam-focused learning for dental students in Bangladesh.">
@@ -113,13 +113,13 @@ header.scrolled{background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop
 .mnav .btn{width:100%}
 
 /* hero */
-.hero{padding:calc(140px + env(safe-area-inset-top,0)) 0 70px;position:relative;overflow-x:clip}
-.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:40px;align-items:center}
+.hero{padding:calc(150px + env(safe-area-inset-top,0)) 0 40px;position:relative;overflow-x:clip}
+.hero-grid{display:grid;grid-template-columns:1fr;text-align:center;justify-items:center}
 .hero h1{font-size:clamp(2.6rem,6.4vw,5rem);font-weight:800;margin:22px 0 18px}
 .hero .bn-tag{font-size:1.15rem;color:var(--amber);margin-bottom:10px}
-.hero p.lead{font-size:1.12rem;color:var(--muted);max-width:540px;margin-bottom:32px}
-.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:44px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:600px}
+.hero p.lead{font-size:1.12rem;color:var(--muted);max-width:620px;margin:0 auto 32px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:44px;justify-content:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:760px;width:100%;margin:0 auto}
 .stat{padding:16px 14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
 .stat b{display:block;font-size:1.65rem;font-weight:800;letter-spacing:-.03em}
 .stat span{font-size:.76rem;color:var(--muted);font-weight:600;line-height:1.3;display:block}
@@ -161,10 +161,10 @@ header.scrolled{background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop
 .b-mission p{color:var(--muted);max-width:560px;margin-top:14px}
 .b-mission .sig{display:flex;align-items:center;gap:10px;margin-top:22px;font-size:.9rem;color:var(--muted)}
 .b-mission .sig b{color:var(--ink)}
-.b-num{grid-column:span 2;display:flex;flex-direction:column;justify-content:flex-end;background:var(--grad);border:0;color:#fff;min-height:300px}
-.b-num .big{font-size:4.6rem;font-weight:800;letter-spacing:-.05em;line-height:1}
-.b-num p{opacity:.9;font-weight:600}
-.b-num svg{position:absolute;right:-30px;top:-30px;width:190px;opacity:.18}
+.b-num{grid-column:span 2;display:flex;flex-direction:column;justify-content:flex-end;min-height:300px}
+.b-num .big{font-size:4.6rem;font-weight:800;letter-spacing:-.05em;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.b-num p{color:var(--muted);font-weight:600}
+.b-num svg{position:absolute;right:-30px;top:-30px;width:170px;opacity:.07;fill:var(--ink)}
 .feat{grid-column:span 2}
 .feat .ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin-bottom:18px;background:var(--surface-2);border:1px solid var(--line)}
 .feat .ic svg{width:24px;height:24px;stroke:var(--cyan)}
@@ -226,11 +226,6 @@ header.scrolled{background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop
 .mentor p{font-size:.83rem;color:#C3D2EE;max-height:0;opacity:0;overflow:hidden;transition:max-height .5s ease,opacity .4s,margin .4s}
 .mentor:hover p,.mentor:focus-within p,.mentor.show p{max-height:160px;opacity:1;margin-top:8px}
 .mentor .more{position:absolute;top:12px;right:12px;z-index:2;width:36px;height:36px;border-radius:10px;display:none;place-items:center;background:rgba(6,14,31,.6);border:1px solid rgba(255,255,255,.2);color:#fff;backdrop-filter:blur(8px)}
-.mentor.lead{grid-column:span 2;grid-row:span 2;aspect-ratio:auto;min-height:320px}
-.mentor.lead img,.mentor.lead .mono{position:absolute;inset:0}
-.mentor.lead .info{padding-top:120px}
-.mentor.lead h3{font-size:1.6rem}
-.mentor.lead p{max-height:none;opacity:1;margin-top:8px;font-size:.92rem}
 
 /* testimonials */
 .t-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
@@ -307,7 +302,7 @@ footer ul a:hover{color:var(--ink)}
   .hero p.lead,.stats{margin-inline:auto}
   .hero-cta{justify-content:center}
   .hero-vis{margin:10px auto 0;max-width:430px}
-  .b-mission{grid-column:span 6}.b-num{grid-column:span 6;min-height:200px}
+  .b-mission{grid-column:span 6}.b-num{grid-column:span 6;min-height:0}
   .feat{grid-column:span 3}
   .journey{grid-template-columns:repeat(2,1fr)}
   .t-grid{grid-template-columns:1fr 1fr}
@@ -331,6 +326,8 @@ footer ul a:hover{color:var(--ink)}
   .card{padding:22px}
   .journey{grid-template-columns:1fr}
   .c-tools{flex-direction:column;align-items:stretch}
+  .chips{flex-wrap:wrap;overflow:visible}
+  .chip{flex:1 1 auto;padding:10px 12px}
   .search{max-width:none}
   .c-grid{grid-template-columns:1fr 1fr;gap:12px}
   .c-body{padding:13px 13px 14px}
@@ -339,13 +336,11 @@ footer ul a:hover{color:var(--ink)}
   .c-link{margin-top:10px;padding-top:10px;font-size:.82rem}
   .badge{font-size:.62rem;padding:4px 8px;top:8px;left:8px}
   .m-grid{grid-template-columns:1fr 1fr;gap:12px}
-  .mentor.lead{grid-column:span 2;grid-row:auto;aspect-ratio:4/5}
   .kicker{font-size:.66rem;letter-spacing:.08em;padding:6px 12px}
   .mentor .info{padding:50px 12px 12px}
   .mentor h3{font-size:.98rem}
   .mentor .tag{font-size:.6rem;padding:4px 8px}
   .mentor .more{display:grid}
-  .mentor.lead .more{display:none}
   .mentor .mono span{font-size:3rem}
   .t-grid{grid-template-columns:1fr}
   .socials{grid-template-columns:1fr 1fr;gap:10px}
@@ -419,7 +414,7 @@ footer ul a:hover{color:var(--ink)}
       <span class="kicker rv"><i></i>BDS Education · Built for Bangladesh</span>
       <h1 class="rv">Future Dentistry<br><span class="grad-text">Begins Here.</span></h1>
       <div class="bn bn-tag rv">ডেন্টাল শিক্ষার নতুন দিগন্ত</div>
-      <p class="lead rv">Phase-wise BDS courses, expert dentist mentors and exam-focused notes — everything a dental student in Bangladesh needs, on one modern platform.</p>
+      <p class="lead rv">Phase-wise BDS courses, expert mentors and exam-focused notes — everything a dental student in Bangladesh needs, on one modern platform.</p>
       <div class="hero-cta rv">
         <a class="btn btn-primary" href="#courses">Explore Courses
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
@@ -433,39 +428,9 @@ footer ul a:hover{color:var(--ink)}
       </div>
     </div>
 
-    <div class="hero-vis rv" aria-hidden="true">
-      <div class="orbit"></div><div class="orbit o2"></div><div class="orbit o3"></div>
-      <div class="spin">
-        <span class="chip-o" style="top:-2%;left:44%">🦷 Dental Anatomy</span>
-        <span class="chip-o" style="top:46%;right:-8%">OMS</span>
-        <span class="chip-o" style="bottom:-2%;left:40%">Prosthodontics</span>
-        <span class="chip-o" style="top:46%;left:-6%">SDM</span>
-      </div>
-      <div class="spin rev">
-        <span class="chip-o" style="top:6%;left:10%">OPG</span>
-        <span class="chip-o" style="bottom:8%;right:6%">Ortho</span>
-      </div>
-      <div class="tooth-wrap">
-        <svg viewBox="0 0 200 220">
-          <defs>
-            <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E9F7FF"/><stop offset=".55" stop-color="#8FD3FF"/><stop offset="1" stop-color="#3D8BFF"/></linearGradient>
-            <linearGradient id="tg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-          </defs>
-          <path d="M100 30c-14-12-40-18-58-8-22 12-26 42-18 70 6 22 10 34 14 60 4 30 10 52 24 52 12 0 14-22 18-44 3-16 8-24 20-24s17 8 20 24c4 22 6 44 18 44 14 0 20-22 24-52 4-26 8-38 14-60 8-28 4-58-18-70-18-10-44-4-58 8z" fill="url(#tg)"/>
-          <path d="M52 40c-12 8-16 26-12 44 2-16 10-30 26-36 14-5 26 0 34 6-8-12-30-24-48-14z" fill="url(#tg2)"/>
-          <polyline points="30,120 70,120 82,96 96,146 110,106 120,120 170,120" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
-        </svg>
-      </div>
-      <div class="glass-card gc1"><span class="dot live" style="background:rgba(46,229,157,.15)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EE59D" stroke-width="2.4"><polygon points="6 4 20 12 6 20 6 4"/></svg></span><div><b>Live class tonight</b><small>Decode the OPG · 9:00 PM</small></div></div>
-      <div class="glass-card gc2"><span class="dot" style="background:rgba(255,179,92,.15)"><svg width="18" height="18" viewBox="0 0 24 24" fill="#FFB35C"><path d="M12 2l3 6.9 7.5.7-5.7 5 1.7 7.4L12 18.3 5.5 22l1.7-7.4-5.7-5 7.5-.7z"/></svg></span><div><b>4,700+ learners</b><small>across Bangladesh</small></div></div>
-    </div>
   </div>
 </section>
 
-<div class="marquee" aria-hidden="true"><div class="marquee-track">
-  <span>Science of Dental Materials</span><span>Dental Anatomy</span><span>Physiology</span><span>Biochemistry</span><span>Pathology</span><span>Microbiology</span><span>Pharmacology</span><span>Oral Pathology &amp; Medicine</span><span>Periodontology</span><span>Maxillofacial Surgery</span><span>Conservative &amp; Endo</span><span>Orthodontics</span><span>Prosthodontics</span><span>Pedodontics</span>
-  <span>Science of Dental Materials</span><span>Dental Anatomy</span><span>Physiology</span><span>Biochemistry</span><span>Pathology</span><span>Microbiology</span><span>Pharmacology</span><span>Oral Pathology &amp; Medicine</span><span>Periodontology</span><span>Maxillofacial Surgery</span><span>Conservative &amp; Endo</span><span>Orthodontics</span><span>Prosthodontics</span><span>Pedodontics</span>
-</div></div>
 
 <!-- ============ ABOUT ============ -->
 <section class="sec" id="about">
@@ -473,7 +438,7 @@ footer ul a:hover{color:var(--ink)}
     <div class="sec-head rv">
       <span class="kicker"><i></i>About MediVerse Dental</span>
       <h2>Dental education, <span class="grad-text">re-engineered</span> for how you actually study.</h2>
-      <p>MediVerse Dental is an academic platform built by dentists and doctors to help BDS students learn better, prepare smarter and access quality resources — wherever they are in Bangladesh.</p>
+      <p>MediVerse Dental is an academic platform built by expert mentors to help BDS students learn better, prepare smarter and access quality resources — wherever they are in Bangladesh.</p>
     </div>
 
     <div class="bento">
@@ -485,7 +450,7 @@ footer ul a:hover{color:var(--ink)}
         <div class="sig"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Trusted by <b>4,700+ BDS students</b> from dental colleges nationwide</span></div>
       </div>
       <div class="card b-num rv">
-        <svg viewBox="0 0 200 220" fill="#fff"><path d="M100 30c-14-12-40-18-58-8-22 12-26 42-18 70 6 22 10 34 14 60 4 30 10 52 24 52 12 0 14-22 18-44 3-16 8-24 20-24s17 8 20 24c4 22 6 44 18 44 14 0 20-22 24-52 4-26 8-38 14-60 8-28 4-58-18-70-18-10-44-4-58 8z"/></svg>
+        <svg viewBox="0 0 200 220"><path d="M100 30c-14-12-40-18-58-8-22 12-26 42-18 70 6 22 10 34 14 60 4 30 10 52 24 52 12 0 14-22 18-44 3-16 8-24 20-24s17 8 20 24c4 22 6 44 18 44 14 0 20-22 24-52 4-26 8-38 14-60 8-28 4-58-18-70-18-10-44-4-58 8z"/></svg>
         <div class="big"><span data-count="25">0</span>+</div>
         <p>Courses covering every BDS professional phase</p>
       </div>
@@ -546,7 +511,7 @@ footer ul a:hover{color:var(--ink)}
   <div class="wrap">
     <div class="sec-head rv">
       <span class="kicker"><i></i>Expert Mentor Panel</span>
-      <h2>Learn from dentists who've <span class="grad-text">sat where you're sitting</span>.</h2>
+      <h2>Learn from expert mentors who've <span class="grad-text">sat where you're sitting</span>.</h2>
       <p>15+ mentors from DMC, DDC, SSMC, MDCH, IMC and more — toppers, FCPS trainees and practising clinicians.</p>
     </div>
     <div class="m-grid">
@@ -617,7 +582,7 @@ footer ul a:hover{color:var(--ink)}
       <div class="f-brand">
         <img class="l-dark" src="{{IMG:LOGO_WHITE}}" alt="MediVerse Dental" loading="lazy">
         <img class="l-light" src="{{IMG:LOGO_BLUE}}" alt="MediVerse Dental" loading="lazy">
-        <p>Future Dentistry Begins Here. A BDS education platform built by dentists — phase-wise courses, mentor guidance and exam-focused notes for students across Bangladesh.</p>
+        <p>Future Dentistry Begins Here. A BDS education platform guided by expert mentors — phase-wise courses, mentor guidance and exam-focused notes for students across Bangladesh.</p>
         <div class="f-icons">
           <a href="https://www.facebook.com/share/18R8eQDysQ/" target="_blank" rel="noopener" aria-label="Facebook">{{SVG:FB}}</a>
           <a href="https://youtube.com/@mediversedental?si=VuCm4kPuqcdEORaJ" target="_blank" rel="noopener" aria-label="YouTube">{{SVG:YT}}</a>
@@ -629,7 +594,7 @@ footer ul a:hover{color:var(--ink)}
       <div><h4>Explore</h4><ul><li><a href="#about">About</a></li><li><a href="#mentors">Mentor Panel</a></li><li><a href="#stories">Student Stories</a></li><li><a href="#faq">FAQ</a></li></ul></div>
       <div><h4>Platform</h4><ul><li><a href="https://mediversebd.com" target="_blank" rel="noopener">mediversebd.com</a></li><li><a href="#contact">Contact</a></li><li><a href="https://mediversebd.com" target="_blank" rel="noopener">Privacy Policy</a></li><li><a href="https://mediversebd.com" target="_blank" rel="noopener">Terms of Service</a></li></ul></div>
     </div>
-    <div class="f-bottom"><span>© <span id="yr">2026</span> MediVerse Dental. All rights reserved.</span><span>Made for BDS students, by dentists 🦷</span></div>
+    <div class="f-bottom"><span>© <span id="yr">2026</span> MediVerse Dental. All rights reserved.</span><span>Made for BDS students, by expert mentors 🦷</span></div>
   </div>
 </footer>
 
