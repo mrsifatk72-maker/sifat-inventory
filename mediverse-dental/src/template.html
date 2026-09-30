@@ -11,7 +11,7 @@
 <meta property="og:url" content="https://mediversebd.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#060E1F; --bg-2:#0A1730; --surface:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.08);
@@ -86,6 +86,14 @@ header.scrolled{background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop
 .icon-btn{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);transition:border-color .2s}
 .icon-btn:hover{border-color:var(--cyan)}
 .icon-btn svg{width:20px;height:20px}
+.lang-btn{width:auto;padding:0 14px;font-family:'Hind Siliguri',sans-serif;font-weight:700;font-size:.95rem;gap:6px}
+.lang-btn.en{font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;letter-spacing:.04em}
+html[lang="bn"] body{font-family:'Hind Siliguri','Plus Jakarta Sans',system-ui,sans-serif}
+html[lang="bn"] h1,html[lang="bn"] h2,html[lang="bn"] h3,html[lang="bn"] h4{letter-spacing:0;line-height:1.3;font-weight:700}
+html[lang="bn"] .hero h1{line-height:1.2}
+html[lang="bn"] .kicker{letter-spacing:.02em;font-size:.85rem}
+html[lang="bn"] .mnav li a{letter-spacing:0}
+html[lang="bn"] .btn{font-size:1.02rem}
 .theme-btn .sun{display:none}
 :root[data-theme="light"] .theme-btn .sun{display:block}
 :root[data-theme="light"] .theme-btn .moon{display:none}
@@ -298,6 +306,7 @@ footer ul a:hover{color:var(--ink)}
   .navlinks{display:none}
   .burger{display:block}
   .nav-cta{display:none}
+  .nav-right{gap:8px}
   .hero-grid{grid-template-columns:1fr;text-align:center}
   .hero p.lead,.stats{margin-inline:auto}
   .hero-cta{justify-content:center}
@@ -374,6 +383,7 @@ footer ul a:hover{color:var(--ink)}
       <a href="#faq">FAQ</a>
     </nav>
     <div class="nav-right">
+      <button class="icon-btn lang-btn" id="langBtn" aria-label="Switch language to Bangla" lang="bn">বাংলা</button>
       <button class="icon-btn theme-btn" id="themeBtn" aria-label="Toggle light and dark theme">
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
         <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -416,7 +426,7 @@ footer ul a:hover{color:var(--ink)}
       <div class="bn bn-tag rv">ডেন্টাল শিক্ষার নতুন দিগন্ত</div>
       <p class="lead rv">Phase-wise BDS courses, expert mentors and exam-focused notes — everything a dental student in Bangladesh needs, on one modern platform.</p>
       <div class="hero-cta rv">
-        <a class="btn btn-primary" href="#courses">Explore Courses
+        <a class="btn btn-primary" href="#courses"><span>Explore Courses</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         <a class="btn btn-ghost" href="#mentors">Meet the Mentors</a>
       </div>
@@ -500,8 +510,8 @@ footer ul a:hover{color:var(--ink)}
     <div class="c-grid" id="cGrid">
 {{COURSES}}
     </div>
-    <div class="empty" id="cEmpty">No course matches that search yet — <a href="{{WA}}" target="_blank" rel="noopener" style="color:var(--cyan);font-weight:700">ask us on WhatsApp</a>.</div>
-    <div class="c-more rv"><a class="btn btn-ghost" href="https://mediversebd.com" target="_blank" rel="noopener">See all courses on mediversebd.com
+    <div class="empty" id="cEmpty"><span>No course matches that search yet — </span><a href="{{WA}}" target="_blank" rel="noopener" style="color:var(--cyan);font-weight:700">ask us on WhatsApp</a>.</div>
+    <div class="c-more rv"><a class="btn btn-ghost" href="https://mediversebd.com" target="_blank" rel="noopener"><span>See all courses on mediversebd.com</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></a></div>
   </div>
 </section>
@@ -544,11 +554,11 @@ footer ul a:hover{color:var(--ink)}
       <p>Can't find what you need? Message us on WhatsApp or Telegram — the MediVerse team usually replies within a few hours.</p>
     </div>
     <div class="faq-list rv">
-      <details open><summary>How do I enroll in a course?<span class="pm">+</span></summary><div class="ans">Open the course page on <a href="https://mediversebd.com" target="_blank" rel="noopener" style="color:var(--cyan)">mediversebd.com</a>, tap Enroll and complete payment (bKash / Nagad / card). You get access in your dashboard right away.</div></details>
-      <details><summary>Are classes live or recorded?<span class="pm">+</span></summary><div class="ans">Both. Core lectures are recorded so you can study at your own pace; live sessions and doubt-clearing classes are announced on our Facebook group and Telegram channel.</div></details>
-      <details><summary>How long do I keep access?<span class="pm">+</span></summary><div class="ans">Most full courses give you access for up to 2 years — long enough to revise before your professional exam. Check each course page for exact duration.</div></details>
-      <details><summary>Can I watch on my phone?<span class="pm">+</span></summary><div class="ans">Yes. The platform is website-based and works on any phone, tablet or laptop browser — no app install needed. Bookmarking lets you jump back to where you left off.</div></details>
-      <details><summary>Do you offer free classes?<span class="pm">+</span></summary><div class="ans">Yes — 100+ free classes are on our YouTube channel. Subscribe to <a href="https://youtube.com/@mediversedental?si=VuCm4kPuqcdEORaJ" target="_blank" rel="noopener" style="color:var(--cyan)">@mediversedental</a> to get notified.</div></details>
+      <details open><summary><span>How do I enroll in a course?</span><span class="pm">+</span></summary><div class="ans">Open the course page on <a href="https://mediversebd.com" target="_blank" rel="noopener" style="color:var(--cyan)">mediversebd.com</a>, tap Enroll and complete payment (bKash / Nagad / card). You get access in your dashboard right away.</div></details>
+      <details><summary><span>Are classes live or recorded?</span><span class="pm">+</span></summary><div class="ans">Both. Core lectures are recorded so you can study at your own pace; live sessions and doubt-clearing classes are announced on our Facebook group and Telegram channel.</div></details>
+      <details><summary><span>How long do I keep access?</span><span class="pm">+</span></summary><div class="ans">Most full courses give you access for up to 2 years — long enough to revise before your professional exam. Check each course page for exact duration.</div></details>
+      <details><summary><span>Can I watch on my phone?</span><span class="pm">+</span></summary><div class="ans">Yes. The platform is website-based and works on any phone, tablet or laptop browser — no app install needed. Bookmarking lets you jump back to where you left off.</div></details>
+      <details><summary><span>Do you offer free classes?</span><span class="pm">+</span></summary><div class="ans">Yes — 100+ free classes are on our YouTube channel. Subscribe to <a href="https://youtube.com/@mediversedental?si=VuCm4kPuqcdEORaJ" target="_blank" rel="noopener" style="color:var(--cyan)">@mediversedental</a> to get notified.</div></details>
     </div>
   </div>
 </section>
@@ -594,7 +604,7 @@ footer ul a:hover{color:var(--ink)}
       <div><h4>Explore</h4><ul><li><a href="#about">About</a></li><li><a href="#mentors">Mentor Panel</a></li><li><a href="#stories">Student Stories</a></li><li><a href="#faq">FAQ</a></li></ul></div>
       <div><h4>Platform</h4><ul><li><a href="https://mediversebd.com" target="_blank" rel="noopener">mediversebd.com</a></li><li><a href="#contact">Contact</a></li><li><a href="https://mediversebd.com" target="_blank" rel="noopener">Privacy Policy</a></li><li><a href="https://mediversebd.com" target="_blank" rel="noopener">Terms of Service</a></li></ul></div>
     </div>
-    <div class="f-bottom"><span>© <span id="yr">2026</span> MediVerse Dental. All rights reserved.</span><span>Made for BDS students, by expert mentors 🦷</span></div>
+    <div class="f-bottom"><span>© <span id="yr">2026</span> <span>MediVerse Dental. All rights reserved.</span></span><span>Made for BDS students, by expert mentors 🦷</span></div>
   </div>
 </footer>
 
@@ -610,6 +620,28 @@ footer ul a:hover{color:var(--ink)}
     var n=root.dataset.theme==='light'?'dark':'light';root.dataset.theme=n;
     try{localStorage.setItem('mvd-theme',n);}catch(e){}
   });
+
+  // language (English / Bangla)
+  var BN={{BN_JSON}},lang='en',langBtn=document.getElementById('langBtn'),search=document.getElementById('cSearch');
+  var EN_TITLE=document.title,EN_PH=search.placeholder,BN_DIG='০১২৩৪৫৬৭৮৯';
+  function digits(str){return lang==='bn'?String(str).replace(/[0-9]/g,function(d){return BN_DIG[d];}):String(str);}
+  window.mvdFmt=function(n,suf){return digits(n.toLocaleString('en-US'))+(suf||'');};
+  function setLang(l){
+    lang=l;root.lang=l;
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      if(el.dataset.en===undefined)el.dataset.en=el.innerHTML;
+      el.innerHTML=(l==='bn'&&BN[el.dataset.i18n])||el.dataset.en;
+    });
+    document.title=l==='bn'?BN._title:EN_TITLE;search.placeholder=l==='bn'?BN._search:EN_PH;
+    langBtn.textContent=l==='bn'?'EN':'বাংলা';langBtn.classList.toggle('en',l==='bn');
+    langBtn.setAttribute('lang',l==='bn'?'en':'bn');
+    langBtn.setAttribute('aria-label',l==='bn'?'Switch language to English':'Switch language to Bangla');
+    document.querySelectorAll('[data-count][data-done]').forEach(function(el){el.textContent=mvdFmt(+el.dataset.count,el.dataset.suffix);});
+    try{localStorage.setItem('mvd-lang',l);}catch(e){}
+  }
+  langBtn.addEventListener('click',function(){setLang(lang==='bn'?'en':'bn');});
+  var savedLang=null;try{savedLang=localStorage.getItem('mvd-lang');}catch(e){}
+  if(savedLang==='bn'||(!savedLang&&/^bn/i.test(navigator.language||'')))setLang('bn');
 
   // hamburger menu
   var burger=document.getElementById('burger'),mnav=document.getElementById('mnav');
@@ -644,7 +676,7 @@ footer ul a:hover{color:var(--ink)}
     if(!e.isIntersecting)return;cio.unobserve(e.target);
     var el=e.target,to=+el.dataset.count,suf=el.dataset.suffix||'',t0=performance.now();
     (function tick(n){var p=Math.min((n-t0)/1600,1),v=Math.round(to*(1-Math.pow(1-p,3)));
-      el.textContent=v.toLocaleString('en-US')+(p>=1?suf:'');if(p<1)requestAnimationFrame(tick);})(t0);
+      el.textContent=mvdFmt(v,p>=1?suf:'');if(p<1)requestAnimationFrame(tick);else el.dataset.done='1';})(t0);
   });},{threshold:.5});
   document.querySelectorAll('[data-count]').forEach(function(el){cio.observe(el);});
 

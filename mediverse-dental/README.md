@@ -5,6 +5,7 @@
 To edit:
 - Courses & mentors: edit the `COURSES` / `MENTORS` lists in `src/build.py`
 - Layout, text & styles: edit `src/template.html`
+- Bangla translations: edit `src/i18n_bn.py` (update it whenever you change English text)
 - Images: put files in `assets/` and reference them by filename in `build.py`
 
 Then rebuild: `python3 mediverse-dental/src/build.py`

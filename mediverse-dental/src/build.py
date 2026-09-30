@@ -6,9 +6,12 @@ you can upload anywhere (mediversebd.com, Netlify, GitHub Pages, etc.).
     python3 mediverse-dental/src/build.py
 """
 import base64
+import json
 import html
 import mimetypes
 import pathlib
+
+import i18n_bn
 
 SRC = pathlib.Path(__file__).parent
 ROOT = SRC.parent
@@ -90,7 +93,7 @@ def course_html(phase, title, desc, img, url, kw):
     return (f'      <a class="course rv" data-f="{phase}" data-k="{e(kw.lower())}" href="{href}" target="_blank" rel="noopener">'
             f'<div class="c-img">{media}<span class="badge">{PHASE[phase]}</span></div>'
             f'<div class="c-body"><h3>{e(title)}</h3><p>{e(desc)}</p>'
-            f'<span class="c-link">View course {ARROW}</span></div></a>')
+            f'<span class="c-link"><span>View course</span> {ARROW}</span></div></a>')
 
 
 def initials(name):
@@ -106,6 +109,29 @@ def mentor_html(name, tag, cred, photo):
             f'<div class="info"><span class="tag">{e(tag)}</span><h3>{e(name)}</h3><p>{e(cred)}</p></div></article>')
 
 
+def add_bangla(page):
+    """Tag every element whose content matches an English string with data-i18n,
+    and embed the Bangla dictionary for the language switch."""
+    body_start, script_start = page.index("<body>"), page.index("<script>")
+    body = page[body_start:script_start]
+    pairs = list(i18n_bn.PAGE) + [(e(en), e(bn)) for en, bn in i18n_bn.COURSE_DESC.items()]
+    bn = {"_title": i18n_bn.UI["title"], "_search": i18n_bn.UI["search"]}
+    for i, (en, tr) in enumerate(pairs):
+        key, needle, hits, pos = f"t{i}", ">" + en + "</", [], 0
+        while (pos := body.find(needle, pos)) != -1:
+            lt = body.rfind("<", 0, pos)
+            tag = body[lt:pos]
+            if not tag.startswith(("</", "<br")) and "data-i18n=" not in tag:
+                hits.append(pos)
+            pos += 1
+        assert hits, f"Bangla translation has no matching English text: {en!r}"
+        for pos in reversed(hits):
+            body = body[:pos] + f' data-i18n="{key}"' + body[pos:]
+        bn[key] = tr
+    page = page[:body_start] + body + page[script_start:]
+    return page.replace("{{BN_JSON}}", json.dumps(bn, ensure_ascii=False).replace("</", "<\\/"))
+
+
 def main():
     out = (SRC / "template.html").read_text()
     out = out.replace("{{COURSES}}", "\n".join(course_html(*c) for c in COURSES))
@@ -115,6 +141,7 @@ def main():
     for k, v in SVG.items():
         out = out.replace("{{SVG:%s}}" % k, v)
     out = out.replace("{{WA}}", WA)
+    out = add_bangla(out)
     assert "{{" not in out, "unreplaced placeholder"
     OUT.write_text(out)
     print(f"wrote {OUT} ({OUT.stat().st_size / 1024:.0f} KB)")
