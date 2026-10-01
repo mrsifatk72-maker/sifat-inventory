@@ -39,7 +39,7 @@ COURSES = [
     ("1", "Dental Anatomy Full Course", "Tooth morphology through full arch relations and occlusion.", "dental-anatomy.jpg", C + "dental-anatomy-full-course", "da tooth morphology"),
     ("1", "Anatomy 1st Term", "Foundational general anatomy, structured for early BDS.", "anatomy-1.jpg", C + "anatomy-first-term-for-bds", "general anatomy"),
     ("1", "Anatomy 2nd Term", "Continues core anatomy with viva-focused revision notes.", "anatomy-2.jpg", C + "anatomy-second-term-for-bds", "general anatomy"),
-    ("1", "Dental Morphology", "Tooth form and function, mapped for practical and theory exams.", "dental-morphology.jpg", None, "tooth anatomy"),
+    ("1", "Dental Morphology", "Tooth form and function, mapped for practical and theory exams.", "dental-morphology.jpg", C + "dental-morphology", "tooth anatomy"),
     ("1", "Essential Physiology", "Systems-based physiology notes built for BDS first phase.", "physiology.jpg", C + "essential-physiology-for-bds", ""),
     ("1", "Essential Biochemistry", "Core biochemical concepts, simplified for dental students.", "biochemistry.jpg", C + "essential-biochemistry-for-bds", ""),
     ("2", "Dental Pharmacology", "Drug classes and dental prescriptions, exam-focused.", "dental-pharmacology.jpg", C + "dental-pharmacology", "drugs prescription"),
@@ -58,18 +58,37 @@ COURSES = [
     ("4", "Pedodontics Made Easy", "Child dental care and management, simplified for finals.", None, None, "paediatric pediatric children"),
 ]
 
-# (name, subject tag, credentials, photo or None) — all mentors shown equally
+# (name, subject tag, credentials, photo file / HIJAB icon / None for initials) — all mentors shown equally
+HIJAB = "hijab"  # female mentor without a photo: show the hijab doctor icon
+
+# Hijab doctor icon (white silhouette; face, drape lines and stethoscope are cut out via a mask)
+HIJAB_SVG = (
+    '<svg class="hijab" viewBox="0 0 200 220" aria-hidden="true"><defs><mask id="{id}">'
+    '<rect width="200" height="220" fill="#fff"/>'
+    '<path d="M100 36c18 0 29 19 29 40 0 23-13 37-29 37s-29-14-29-37c0-21 11-40 29-40z" fill="#000"/>'
+    '<g fill="none" stroke="#000" stroke-width="6" stroke-linecap="round">'
+    '<path d="M60 112q40 28 80 0"/><path d="M50 124q3 13 12 21"/><path d="M96 160q28 1 52-12"/>'
+    '<path d="M22 158c40 22 116 22 156 0" stroke-width="5"/>'
+    '<path d="M58 178l-10 20"/><circle cx="46" cy="206" r="9"/>'
+    '<path d="M152 174v14"/><path d="M152 188c-14 0-18 11-16 22M152 188c14 0 18 11 16 22"/>'
+    '</g><g fill="#000"><circle cx="136" cy="212" r="5"/><circle cx="168" cy="212" r="5"/></g>'
+    '</mask></defs><g mask="url(#{id})" fill="currentColor">'
+    '<path d="M100 8C57 8 34 40 34 84v36c-8 12-12 24-11 37 38 24 116 24 154 0 1-13-3-25-11-37V84C166 40 143 8 100 8z"/>'
+    '<path d="M0 220c2-34 20-56 38-64 40 26 84 26 124 0 18 8 36 30 38 64z"/>'
+    '</g></svg>'
+)
+
 MENTORS = [
     ("Dr. Tanim Ahmed", "Oral Patho · Perio · OMS · Conservative", "MDCH, Session 2018-19. Expertise: Oral Pathology & Medicine, Periodontology, Oral & Maxillofacial Surgery, Conservative & Endodontics.", "tanim.jpg"),
     ("Dr. M R Sifat", "Medicine", "MBBS (DMC), BCS (Health), FCPS P-1 (Medicine), MRCP P-2 (UK). DMC, Session 2014-15.", "sifat.jpg"),
     ("Firoj Ahamed Fahim", "SDM & Dental Anatomy", "Final year BDS, Sir Salimullah Medical College (Dental Unit), Session 2021-22.", "fahim.jpg"),
     ("Sirajum Munir", "General Anatomy", "Pioneer Dental College (PDC), Session 2023-24.", "munir.jpg"),
     ("Khondkar Adlul Haque", "Biochemistry", "Pioneer Dental College (PDC), Session 2023-24.", "adlul.jpg"),
-    ("Nusrat Jahan Efty", "Dental Pharmacology", "Sir Salimullah Medical College, Session 2021-22.", None),
+    ("Nusrat Jahan Efty", "Dental Pharmacology", "Sir Salimullah Medical College, Session 2021-22.", HIJAB),
     ("Dr. Mahmudul Hasan Siyam", "Prosthodontics", "SSMC, DU. Session 2018-19.", "siyam.jpg"),
-    ("Dr. Faiza Tabassum", "Orthodontics", "FCPS Part II Trainee (Dhaka Dental College), Session 2017-18. 3rd in BDS Final Prof (DU). Honours in OMS, Orthodontics, Prosthodontics, Conservative, General Surgery and Dental Anatomy.", None),
-    ("Dr. Taslima Jahan Lubna", "Orthodontics", "Marks Dental College, Session 2010-11. Pursuing MFDS RCSEng Part-1 and FCPS Part-1 (Orthodontics).", None),
-    ("Dr. Jannatul Ferdous", "Conservative & Endo", "IMC, Session 2014-15. MS at BMU (Conservative Dentistry & Endodontics). Honours in Dental Public Health and Medicine.", None),
+    ("Dr. Faiza Tabassum", "Orthodontics", "FCPS Part II Trainee (Dhaka Dental College), Session 2017-18. 3rd in BDS Final Prof (DU). Honours in OMS, Orthodontics, Prosthodontics, Conservative, General Surgery and Dental Anatomy.", HIJAB),
+    ("Dr. Taslima Jahan Lubna", "Orthodontics", "Marks Dental College, Session 2010-11. Pursuing MFDS RCSEng Part-1 and FCPS Part-1 (Orthodontics).", HIJAB),
+    ("Dr. Jannatul Ferdous", "Conservative & Endo", "IMC, Session 2014-15. MS at BMU (Conservative Dentistry & Endodontics). Honours in Dental Public Health and Medicine.", HIJAB),
 ]
 
 ARROW = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" '
@@ -104,8 +123,12 @@ def initials(name):
 
 
 def mentor_html(name, tag, cred, photo):
-    media = (f'<img src="{data_uri(photo)}" alt="{e(name)}" loading="lazy" decoding="async">' if photo
-             else f'<div class="mono" aria-hidden="true"><span>{initials(name)}</span></div>')
+    if photo == HIJAB:
+        media = f'<div class="mono" role="img" aria-label="{e(name)}">{HIJAB_SVG.replace("{id}", "hj" + initials(name).lower())}</div>'
+    elif photo:
+        media = f'<img src="{data_uri(photo)}" alt="{e(name)}" loading="lazy" decoding="async">'
+    else:
+        media = f'<div class="mono" aria-hidden="true"><span>{initials(name)}</span></div>'
     return (f'      <article class="mentor rv" tabindex="0">{media}'
             f'<button class="more" aria-label="Show credentials of {e(name)}" aria-expanded="false">i</button>'
             f'<div class="info"><span class="tag">{e(tag)}</span><h3>{e(name)}</h3><p>{e(cred)}</p></div></article>')
