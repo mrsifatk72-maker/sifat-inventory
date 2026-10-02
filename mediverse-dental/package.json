@@ -1,0 +1,13 @@
+{
+  "name": "mediverse-dental",
+  "private": true,
+  "type": "module",
+  "description": "MediVerse Dental website rendered from Supabase (staging preview). No runtime dependencies.",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "dev": "node tests/dev-server.mjs"
+  }
+}

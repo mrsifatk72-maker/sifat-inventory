@@ -62,7 +62,7 @@ def to_markup(html):
     s = re.sub(r'<span class="grad-text">(.*?)</span>', r"[[\1]]", s)
     s = re.sub(r'<a href="([^"]+)"[^>]*>(.*?)</a>', r"[\2](\1)", s)
     s = s.replace("<i></i>", "").replace("&amp;", "&")
-    s = re.sub(r"<b>(.*?)</b>", r"\1", s)
+    s = re.sub(r"<b>(.*?)</b>", r"**\1**", s)          # bold → **bold**
     if "<" in s:
         raise ValueError(f"Unconverted HTML left in: {s!r}")
     return s.replace("\\n", "\n")

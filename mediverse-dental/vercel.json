@@ -1,6 +1,20 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "",
+  "outputDirectory": "public",
   "regions": ["bom1"],
+  "functions": {
+    "api/page.js": {
+      "includeFiles": "src/template.html",
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/api/page?route=home" },
+    { "source": "/courses/:slug", "destination": "/api/page?route=course&slug=:slug" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -18,13 +32,6 @@
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
         { "key": "Cache-Control", "value": "no-store" }
-      ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" },
-        { "key": "X-Robots-Tag", "value": "noindex" }
       ]
     }
   ]

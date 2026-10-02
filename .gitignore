@@ -13,3 +13,6 @@ __pycache__/
 
 # Vercel local state
 .vercel/
+
+# Local screenshot output from tests/visual-compare.mjs
+.visual/
