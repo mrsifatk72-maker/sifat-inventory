@@ -69,3 +69,86 @@ select
 
 OUT.write_text("".join(parts), encoding="utf-8")
 print(f"wrote {OUT.relative_to(ROOT.parent)} ({OUT.stat().st_size // 1024} KB)")
+
+# ============================================================================
+# The same setup split into 5 smaller parts (easier to copy on a phone).
+# Run Part 1 → 2 → 3 → 4 → 5. Each part is its own all-or-nothing transaction
+# and starts with a check that refuses to run out of order or twice.
+# The SQL between the guards is byte-for-byte the same as in the files above.
+# ============================================================================
+PARTS_DIR = SUPA / "staging_parts"
+PARTS_DIR.mkdir(exist_ok=True)
+
+mig = {f.name.split("_", 1)[1].removesuffix(".sql"): f.read_text(encoding="utf-8")
+       for f in sorted((SUPA / "migrations").glob("*.sql"))}
+
+content = mig["content"]
+cut = content.index("-- ============================================================================\n"
+                    "-- Triggers: updated_at + audit log")
+content_tables, content_security = content[:cut], content[cut:]
+
+seed_body = seed  # begin/commit already removed above
+seed_cut = seed_body.index("insert into public.mentors")
+seed_a, seed_b = seed_body[:seed_cut], seed_body[seed_cut:]
+
+SELF_CHECK = parts[-1]  # self-check + commit + result select (same as the one-file version)
+
+
+def guard(part, prev_checks, prev_msg, done_check):
+    # Prerequisites are checked one at a time BEFORE the "already done" check, so a
+    # part run too early always says which part to run first (each IF is only
+    # evaluated if the previous one passed).
+    prev = "".join(
+        f"""  if not ({c}) then
+    raise exception '{prev_msg} — nothing was changed. (আগের অংশটি আগে চালান)';
+  end if;
+""" for c in prev_checks)
+    already = (f"PART {part} IS ALREADY DONE — nothing was changed. Go to PART {part + 1}. (এই অংশ আগেই হয়ে গেছে, পরের অংশে যান)"
+               if part < 5 else
+               "SETUP IS ALREADY COMPLETE — nothing was changed. (সেটআপ আগেই সম্পূর্ণ হয়ে গেছে)")
+    return f"""-- ============================================================================
+-- MediVerse Dental — STAGING DATABASE SETUP — PART {part} of 5 (generated file)
+-- Run the parts in order: 1 → 2 → 3 → 4 → 5, each in its own SQL Editor query.
+-- All-or-nothing: if anything fails, nothing from this part is saved.
+-- ============================================================================
+
+begin;
+
+do $$
+begin
+{prev}  if {done_check} then
+    raise exception '{already}';
+  end if;
+end;
+$$;
+"""
+
+
+plan = [
+    (1, [], "", "to_regclass('public.admin_users') is not null",
+     mig["foundation"] + mig["admin_auth"], "commit;\n"),
+    (2, ["to_regclass('public.audit_log') is not null"], "Please run PART 1 first",
+     "to_regclass('public.courses') is not null",
+     content_tables, "commit;\n"),
+    (3, ["to_regclass('public.media_usage') is not null"], "Please run PART 2 first",
+     "to_regclass('public.analytics_events') is not null",
+     content_security + mig["analytics"] + mig["storage"], "commit;\n"),
+    (4, ["to_regclass('public.media') is not null",
+         "exists (select 1 from pg_policies where schemaname = 'storage' and policyname = 'public_media_admin_select')"],
+     "Please run PART 3 first",
+     "exists (select 1 from public.media)",
+     seed_a, "commit;\n"),
+    (5, ["to_regclass('public.courses') is not null", "exists (select 1 from public.courses)"], "Please run PART 4 first",
+     "exists (select 1 from public.mentors)",
+     seed_b, SELF_CHECK),
+]
+
+for part, prev, prev_msg, done, body, tail in plan:
+    text = guard(part, prev, prev_msg, done) + "\n" + body.strip("\n") + "\n\n"
+    if part < 5:
+        text += tail + f"\nselect 'PART {part} DONE ✅ — now run PART {part + 1}' as result;\n"
+    else:
+        text += tail.lstrip("\n")
+    path = PARTS_DIR / f"part{part}.sql"
+    path.write_text(text, encoding="utf-8")
+    print(f"wrote {path.relative_to(ROOT.parent)} ({path.stat().st_size // 1024} KB, {text.count(chr(10))} lines)")
