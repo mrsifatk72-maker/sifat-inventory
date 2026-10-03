@@ -112,3 +112,22 @@ test('missing environment variables fail safely', async () => {
   await handler({ url: '/', headers: {} }, res);
   assert.equal(res.statusCode, 503);
 });
+
+test('both key formats work; secret keys are refused', async () => {
+  const { config } = await import('../lib/data.js');
+  const seen = [];
+  const spy = async (url, opts) => { seen.push(opts.headers); return { ok: true, json: async () => [] }; };
+  const jwt = (payload) => ['eyJhbGciOiJIUzI1NiJ9', Buffer.from(JSON.stringify(payload)).toString('base64url'), 'sig'].join('.');
+
+  await loadContent(config({ SUPABASE_URL: 'https://p.supabase.co', SUPABASE_ANON_KEY: 'sb_publishable_abc123' }), spy);
+  assert.equal(seen[0].apikey, 'sb_publishable_abc123');
+  assert.equal(seen[0].Authorization, undefined, 'publishable key is not sent as Bearer');
+
+  seen.length = 0;
+  const anon = jwt({ role: 'anon' });
+  await loadContent(config({ SUPABASE_URL: 'https://p.supabase.co', SUPABASE_ANON_KEY: anon }), spy);
+  assert.equal(seen[0].Authorization, `Bearer ${anon}`, 'legacy anon JWT is sent as Bearer');
+
+  assert.throws(() => config({ SUPABASE_URL: 'https://p.supabase.co', SUPABASE_ANON_KEY: 'sb_secret_xyz' }), /not a secret key/);
+  assert.throws(() => config({ SUPABASE_URL: 'https://p.supabase.co', SUPABASE_ANON_KEY: jwt({ role: 'service_role' }) }), /not a secret key/);
+});

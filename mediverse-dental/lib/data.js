@@ -1,6 +1,6 @@
 // Reads public website content from Supabase (read-only).
 //
-// Uses ONLY the public "anon" key. Row-Level Security in the database decides
+// Uses ONLY the public key ("publishable" sb_publishable_… or legacy "anon"). Row-Level Security in the database decides
 // what is visible (published courses, active mentors, visible sections…), so this
 // code cannot see drafts, admin data or analytics even if it tried.
 // The service-role key is never used here.
@@ -11,18 +11,30 @@ const TABLES = [
   'nav_items', 'footer_sections', 'footer_links', 'social_links',
 ];
 
+function decodeJwtPayload(k) {
+  try { return Buffer.from(k.split('.')[1] || '', 'base64url').toString('utf8'); } catch { return ''; }
+}
+
 export function config(env = process.env) {
   const url = (env.SUPABASE_URL || '').replace(/\/+$/, '');
-  const key = env.SUPABASE_ANON_KEY || '';
+  const key = (env.SUPABASE_ANON_KEY || '').trim();
+  // Refuse secret keys: this code must only ever run with the public key.
+  if (/^sb_secret_/.test(key) || /"role"\s*:\s*"service_role"/.test(decodeJwtPayload(key))) {
+    throw new Error('SUPABASE_ANON_KEY must be the public (anon/publishable) key, not a secret key');
+  }
   if (!/^https?:\/\/[^\s]+$/.test(url) || !key) {
     throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variable');
   }
   return { url, key };
 }
 
+const isJwt = (k) => /^eyJ[\w-]+\.[\w-]+\.[\w-]+$/.test(k);
+
 async function getTable({ url, key }, table, fetchImpl) {
   const res = await fetchImpl(`${url}/rest/v1/${table}?select=*`, {
-    headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' },
+    // New "publishable" keys (sb_publishable_…) go only in the apikey header;
+    // legacy anon keys (JWTs) are also sent as a Bearer token. Both = anonymous role.
+    headers: { apikey: key, ...(isJwt(key) ? { Authorization: `Bearer ${key}` } : {}), Accept: 'application/json' },
     signal: AbortSignal.timeout(8000),
   });
   if (!res.ok) throw new Error(`Supabase ${table}: HTTP ${res.status}`);
