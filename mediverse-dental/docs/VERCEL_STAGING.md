@@ -1,5 +1,14 @@
 # Vercel settings for the staging site
 
+## Simplest: deploy branch `ccr-0b6d8b68-4bii23` with Root Directory EMPTY
+The repository root of this branch has its own `vercel.json` + `api/*.mjs`
+entry points that serve the app from `mediverse-dental/` (nothing was moved).
+- Branch: `ccr-0b6d8b68-4bii23`
+- Root Directory: empty
+- Framework Preset: Other (vercel.json sets it anyway)
+
+The options below still work too.
+
 The app lives in the `mediverse-dental/` folder of branch `ccr-0b6d8b68-4bii23`.
 `main` does NOT contain it (main's root is an unrelated React app), so a Vercel
 project that builds `main`, or builds the repo root, shows 404 / the wrong app.

@@ -165,3 +165,15 @@ test('admin-config gives the browser only the URL + public key, refuses secret k
   assert.equal(bad.statusCode, 503);
   assert.ok(!bad.body.includes('sb_secret_abc'));
 });
+
+test('repository-root vercel.json (deploy with Root Directory empty) matches this folder', () => {
+  const sub = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
+  const root = JSON.parse(readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8'));
+  assert.deepEqual(root.rewrites, sub.rewrites);
+  assert.deepEqual(root.headers, sub.headers);
+  assert.equal(root.outputDirectory, 'mediverse-dental/public');
+  for (const f of ['page', 'admin-config']) {
+    const shim = readFileSync(new URL(`../../api/${f}.mjs`, import.meta.url), 'utf8');
+    assert.match(shim, new RegExp(`from '\\.\\./mediverse-dental/api/${f}\\.js'`));
+  }
+});
