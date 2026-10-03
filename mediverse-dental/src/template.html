@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MediVerse Dental — Future Dentistry Begins Here</title>
+<meta name="description" content="MediVerse Dental — phase-wise BDS courses, expert mentors and exam-focused notes for dental students across Bangladesh.">
+<meta name="theme-color" content="#060E1F">
+<meta property="og:title" content="MediVerse Dental — Future Dentistry Begins Here">
+<meta property="og:description" content="Phase-wise BDS courses, expert mentors and exam-focused learning for dental students in Bangladesh.">
+<meta property="og:url" content="https://mediversebd.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060E1F; --bg-2:#0A1730; --surface:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.08);
+  --line:rgba(160,200,255,.14); --line-2:rgba(160,200,255,.28);
+  --ink:#EEF4FF; --muted:#9DB0D1; --soft:#6F85AB;
+  --blue:#3D8BFF; --cyan:#35E0FF; --violet:#8B6CFF; --amber:#FFB35C; --green:#2EE59D;
+  --grad:linear-gradient(120deg,#35E0FF 0%,#3D8BFF 45%,#8B6CFF 100%);
+  --grad-warm:linear-gradient(120deg,#FFB35C,#FF7A8A);
+  --shadow:0 30px 80px -30px rgba(0,0,0,.65);
+  --radius:22px;
+  --glass-blur:saturate(160%) blur(18px);
+}
+:root[data-theme="light"]{
+  --bg:#F5F8FF; --bg-2:#EAF1FF; --surface:rgba(255,255,255,.75); --surface-2:#FFFFFF;
+  --line:rgba(20,60,140,.12); --line-2:rgba(20,60,140,.24);
+  --ink:#0A1A3A; --muted:#4A5F85; --soft:#7A8DB0;
+  --blue:#1F6FEB; --cyan:#00A8D6; --violet:#6A4DF0; --amber:#F08A24; --green:#0FAE72;
+  --grad:linear-gradient(120deg,#00A8D6 0%,#1F6FEB 45%,#6A4DF0 100%);
+  --shadow:0 30px 70px -35px rgba(20,50,120,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:clip;scroll-behavior:smooth;scroll-padding-top:84px;-webkit-text-size-adjust:100%}
+body{overflow-x:clip;font-family:'Plus Jakarta Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;overflow-x:hidden;transition:background .4s,color .4s}
+body.lock{overflow:hidden}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.bn{font-family:'Hind Siliguri',sans-serif}
+.wrap{width:100%;max-width:1200px;margin:0 auto;padding:0 20px}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:8px}
+.grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);padding:7px 14px;border:1px solid var(--line-2);border-radius:999px;background:var(--surface)}
+.kicker i{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+h1,h2,h3{letter-spacing:-.025em;line-height:1.1}
+.sec{padding:110px 0;position:relative}
+.sec-head{max-width:720px;margin-bottom:52px}
+.sec-head.center{margin-inline:auto;text-align:center}
+.sec-head h2{font-size:clamp(2rem,4.4vw,3.2rem);font-weight:800;margin:18px 0 14px}
+.sec-head p{color:var(--muted);font-size:1.06rem}
+
+/* background ornaments */
+.bg-fx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bg-fx .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.45;animation:drift 22s ease-in-out infinite alternate}
+.bg-fx .b1{width:520px;height:520px;background:#1d4fd6;top:-160px;left:-120px}
+.bg-fx .b2{width:460px;height:460px;background:#6a3cf0;top:30%;right:-160px;animation-delay:-8s}
+.bg-fx .b3{width:380px;height:380px;background:#00b3d6;bottom:-120px;left:30%;animation-delay:-14s;opacity:.3}
+:root[data-theme="light"] .bg-fx .blob{opacity:.18}
+.bg-fx .grid{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse at 50% 0%,#000 10%,transparent 70%);-webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 10%,transparent 70%);opacity:.5}
+@keyframes drift{to{transform:translate(80px,60px) scale(1.15)}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 24px;border-radius:14px;font-weight:700;font-size:.97rem;transition:transform .25s,box-shadow .25s,background .25s;white-space:nowrap}
+.btn svg{width:18px;height:18px}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 12px 34px -10px rgba(61,139,255,.7)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 18px 44px -10px rgba(61,139,255,.85)}
+.btn-ghost{border:1px solid var(--line-2);background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+.btn-ghost:hover{border-color:var(--cyan);transform:translateY(-2px)}
+
+/* header */
+header{position:fixed;top:0;left:0;right:0;z-index:100;transition:background .3s,border-color .3s,backdrop-filter .3s;border-bottom:1px solid transparent;padding-top:env(safe-area-inset-top,0)}
+header.scrolled{background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-color:var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:74px;gap:16px}
+.logo{display:flex;align-items:center;flex-shrink:0}
+.logo img{height:44px;width:auto}
+.logo .l-light{display:none}
+:root[data-theme="light"] .logo .l-light{display:block}
+:root[data-theme="light"] .logo .l-dark{display:none}
+.navlinks{display:flex;gap:4px;padding:6px;border:1px solid var(--line);border-radius:999px;background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+.navlinks a{padding:8px 16px;border-radius:999px;font-size:.92rem;font-weight:600;color:var(--muted);transition:color .2s,background .2s}
+.navlinks a:hover,.navlinks a.active{color:var(--ink);background:var(--surface-2)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.icon-btn{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);transition:border-color .2s}
+.icon-btn:hover{border-color:var(--cyan)}
+.icon-btn svg{width:20px;height:20px}
+.lang-btn{width:auto;padding:0 14px;font-family:'Hind Siliguri',sans-serif;font-weight:700;font-size:.95rem;gap:6px}
+.lang-btn.en{font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;letter-spacing:.04em}
+html[lang="bn"] body{font-family:'Hind Siliguri','Plus Jakarta Sans',system-ui,sans-serif}
+html[lang="bn"] h1,html[lang="bn"] h2,html[lang="bn"] h3,html[lang="bn"] h4{letter-spacing:0;line-height:1.3;font-weight:700}
+html[lang="bn"] .hero h1{line-height:1.2}
+html[lang="bn"] .kicker{letter-spacing:.02em;font-size:.85rem}
+html[lang="bn"] .mnav li a{letter-spacing:0}
+html[lang="bn"] .btn{font-size:1.02rem}
+.theme-btn .sun{display:none}
+:root[data-theme="light"] .theme-btn .sun{display:block}
+:root[data-theme="light"] .theme-btn .moon{display:none}
+.burger{display:none;position:relative}
+.burger span{position:absolute;left:12px;right:12px;height:2px;border-radius:2px;background:var(--ink);transition:transform .35s cubic-bezier(.7,0,.3,1),opacity .2s,top .35s}
+.burger span:nth-child(1){top:15px}.burger span:nth-child(2){top:21px}.burger span:nth-child(3){top:27px}
+.burger[aria-expanded="true"] span:nth-child(1){top:21px;transform:rotate(45deg)}
+.burger[aria-expanded="true"] span:nth-child(2){opacity:0;transform:translateX(-8px)}
+.burger[aria-expanded="true"] span:nth-child(3){top:21px;transform:rotate(-45deg)}
+
+/* mobile menu */
+.mnav{position:fixed;inset:0;z-index:99;background:var(--bg);display:flex;flex-direction:column;padding:calc(96px + env(safe-area-inset-top,0)) 24px calc(28px + env(safe-area-inset-bottom,0));clip-path:circle(0% at calc(100% - 42px) 37px);transition:clip-path .6s cubic-bezier(.7,0,.3,1);visibility:hidden;overflow-y:auto}
+.mnav.open{clip-path:circle(150% at calc(100% - 42px) 37px);visibility:visible}
+.mnav ol{list-style:none;counter-reset:m}
+.mnav li{counter-increment:m;opacity:0;transform:translateY(18px);transition:opacity .4s,transform .4s}
+.mnav.open li{opacity:1;transform:none}
+.mnav.open li:nth-child(1){transition-delay:.18s}.mnav.open li:nth-child(2){transition-delay:.23s}.mnav.open li:nth-child(3){transition-delay:.28s}.mnav.open li:nth-child(4){transition-delay:.33s}.mnav.open li:nth-child(5){transition-delay:.38s}.mnav.open li:nth-child(6){transition-delay:.43s}
+.mnav li a{display:flex;align-items:baseline;gap:14px;padding:13px 0;border-bottom:1px solid var(--line);font-size:1.7rem;font-weight:800;letter-spacing:-.02em}
+.mnav li a::before{content:"0" counter(m);font-size:.8rem;font-weight:600;color:var(--cyan);letter-spacing:.1em}
+.mnav .m-foot{margin-top:auto;padding-top:28px}
+.mnav .m-foot p{color:var(--muted);font-size:.85rem;margin-bottom:12px}
+.m-social{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.m-social a{height:54px;border-radius:14px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface)}
+.m-social svg{width:24px;height:24px}
+.mnav .btn{width:100%}
+
+/* hero */
+.hero{padding:calc(150px + env(safe-area-inset-top,0)) 0 40px;position:relative;overflow-x:clip}
+.hero-grid{display:grid;grid-template-columns:1fr;text-align:center;justify-items:center}
+.hero h1{font-size:clamp(2.6rem,6.4vw,5rem);font-weight:800;margin:22px 0 18px}
+.hero .bn-tag{font-size:1.15rem;color:var(--amber);margin-bottom:10px}
+.hero p.lead{font-size:1.12rem;color:var(--muted);max-width:620px;margin:0 auto 32px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:44px;justify-content:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:760px;width:100%;margin:0 auto}
+.stat{padding:16px 14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+.stat b{display:block;font-size:1.65rem;font-weight:800;letter-spacing:-.03em}
+.stat span{font-size:.76rem;color:var(--muted);font-weight:600;line-height:1.3;display:block}
+
+.hero-vis{position:relative;aspect-ratio:1/1;max-width:520px;width:100%;margin-left:auto}
+.orbit{position:absolute;inset:0;border-radius:50%;border:1px dashed var(--line-2)}
+.orbit.o2{inset:12%;border-style:solid;border-color:var(--line)}
+.orbit.o3{inset:26%;border-color:transparent;background:radial-gradient(circle,rgba(61,139,255,.35),transparent 70%)}
+.tooth-wrap{position:absolute;inset:22%;display:grid;place-items:center;animation:float 6s ease-in-out infinite}
+.tooth-wrap svg{width:100%;height:100%;filter:drop-shadow(0 30px 50px rgba(53,224,255,.35))}
+@keyframes float{50%{transform:translateY(-14px) rotate(-2deg)}}
+.spin{position:absolute;inset:0;animation:spin 40s linear infinite}
+.spin.rev{inset:12%;animation-duration:30s;animation-direction:reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chip-o{position:absolute;padding:7px 13px;border-radius:999px;font-size:.78rem;font-weight:700;background:var(--bg-2);border:1px solid var(--line-2);white-space:nowrap;animation:spin 40s linear infinite reverse;box-shadow:var(--shadow)}
+.spin.rev .chip-o{animation:spin 30s linear infinite}
+.glass-card{position:absolute;display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:16px;background:var(--surface);border:1px solid var(--line-2);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);box-shadow:var(--shadow);font-size:.85rem;animation:float 7s ease-in-out infinite}
+.glass-card b{display:block;font-size:.95rem}
+.glass-card small{color:var(--muted)}
+.glass-card .dot{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex-shrink:0}
+.gc1{left:-6%;bottom:14%}.gc2{right:-4%;top:10%;animation-delay:-3s}
+.live{position:relative}
+.live::after{content:"";position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(46,229,157,.7);animation:ping 1.8s infinite}
+@keyframes ping{70%{box-shadow:0 0 0 10px rgba(46,229,157,0)}100%{box-shadow:0 0 0 0 rgba(46,229,157,0)}}
+
+/* marquee */
+.marquee{border-block:1px solid var(--line);padding:18px 0;overflow:hidden;background:var(--surface);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.marquee-track{display:flex;gap:44px;width:max-content;animation:marq 38s linear infinite}
+.marquee span{font-weight:700;font-size:1.05rem;color:var(--muted);display:flex;align-items:center;gap:44px;white-space:nowrap}
+.marquee span::after{content:"✦";color:var(--cyan);font-size:.8rem}
+@keyframes marq{to{transform:translateX(-50%)}}
+
+/* about bento */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.card{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);padding:28px;position:relative;overflow:hidden;transition:border-color .3s,transform .3s}
+.card:hover{border-color:var(--line-2)}
+.b-mission{grid-column:span 4;display:flex;flex-direction:column;justify-content:space-between;min-height:300px;background:linear-gradient(145deg,rgba(61,139,255,.2),rgba(139,108,255,.1) 60%,transparent),var(--surface)}
+.b-mission h3{font-size:clamp(1.5rem,2.8vw,2.1rem);font-weight:800;max-width:560px}
+.b-mission p{color:var(--muted);max-width:560px;margin-top:14px}
+.b-mission .sig{display:flex;align-items:center;gap:10px;margin-top:22px;font-size:.9rem;color:var(--muted)}
+.b-mission .sig b{color:var(--ink)}
+.b-num{grid-column:span 2;display:flex;flex-direction:column;justify-content:flex-end;min-height:300px}
+.b-num .big{font-size:4.6rem;font-weight:800;letter-spacing:-.05em;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.b-num p{color:var(--muted);font-weight:600}
+.b-num svg{position:absolute;right:-30px;top:-30px;width:170px;opacity:.07;fill:var(--ink)}
+.feat{grid-column:span 2}
+.feat .ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin-bottom:18px;background:var(--surface-2);border:1px solid var(--line)}
+.feat .ic svg{width:24px;height:24px;stroke:var(--cyan)}
+.feat h4{font-size:1.1rem;margin-bottom:6px}
+.feat p{color:var(--muted);font-size:.93rem}
+
+/* journey */
+.journey{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px;position:relative}
+.phase{padding:26px 24px 24px}
+.phase .pn{font-size:3rem;font-weight:800;line-height:1;letter-spacing:-.05em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:.9}
+.phase h4{font-size:1.12rem;margin:14px 0 8px}
+.phase p{color:var(--muted);font-size:.9rem}
+.phase .bar{height:4px;border-radius:4px;background:var(--line);margin-top:20px;overflow:hidden}
+.phase .bar i{display:block;height:100%;background:var(--grad);width:0;transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+.phase.in .bar i{width:var(--w)}
+
+/* courses */
+.c-tools{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin-bottom:28px}
+.chips{display:flex;gap:6px;padding:6px;border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow-x:auto;scrollbar-width:none;max-width:100%}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:10px 16px;border-radius:11px;font-weight:700;font-size:.88rem;color:var(--muted);white-space:nowrap;transition:all .25s}
+.chip.active{background:var(--grad);color:#fff;box-shadow:0 8px 20px -8px rgba(61,139,255,.8)}
+.chip:not(.active):hover{color:var(--ink)}
+.search{position:relative;flex:1;min-width:220px;max-width:340px}
+.search input{width:100%;padding:13px 16px 13px 44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:.95rem;outline:none;transition:border-color .2s}
+.search input:focus{border-color:var(--cyan)}
+.search input::placeholder{color:var(--soft)}
+.search svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--soft)}
+.c-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.course{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);overflow:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .35s}
+.course:hover{transform:translateY(-6px);border-color:var(--line-2);box-shadow:var(--shadow)}
+.course.hide{display:none}
+.c-img{position:relative;aspect-ratio:1/1;overflow:hidden;background:var(--bg-2)}
+.c-img img{width:100%;height:100%;object-fit:cover;object-position:top;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.course:hover .c-img img{transform:scale(1.06)}
+.c-img .ph{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;background:radial-gradient(circle at 30% 20%,rgba(53,224,255,.35),transparent 60%),radial-gradient(circle at 80% 90%,rgba(139,108,255,.45),transparent 55%),linear-gradient(160deg,#0f2a5c,#0a1733)}
+.c-img .ph b{font-size:1.5rem;font-weight:800;color:#fff;line-height:1.15}
+.c-img .ph small{display:block;margin-top:10px;color:#9fd8ff;font-weight:700;letter-spacing:.14em;font-size:.72rem;text-transform:uppercase}
+.badge{position:absolute;top:12px;left:12px;padding:6px 11px;border-radius:999px;font-size:.72rem;font-weight:800;letter-spacing:.04em;background:rgba(6,14,31,.72);color:#fff;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18)}
+.c-body{padding:18px 18px 20px;display:flex;flex-direction:column;flex:1}
+.c-body h3{font-size:1.08rem;font-weight:700;margin-bottom:6px;line-height:1.3}
+.c-body p{color:var(--muted);font-size:.88rem;flex:1}
+.c-link{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-weight:700;font-size:.9rem;color:var(--cyan)}
+.c-link svg{width:18px;height:18px;transition:transform .25s}
+.course:hover .c-link svg{transform:translateX(4px)}
+.empty{display:none;text-align:center;padding:50px 20px;color:var(--muted);border:1px dashed var(--line-2);border-radius:var(--radius)}
+.c-more{text-align:center;margin-top:36px}
+
+/* mentors */
+.m-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.mentor{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--bg-2);aspect-ratio:4/5;isolation:isolate}
+.mentor img{width:100%;height:100%;object-fit:cover;object-position:top center;transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.mentor:hover img{transform:scale(1.05)}
+.mentor .mono{width:100%;height:100%;display:grid;place-items:center;background:radial-gradient(circle at 30% 25%,rgba(53,224,255,.3),transparent 55%),radial-gradient(circle at 75% 80%,rgba(139,108,255,.4),transparent 60%),linear-gradient(160deg,#10306a,#0a1733)}
+.mentor .mono span{font-size:4.4rem;font-weight:800;letter-spacing:-.04em;color:#fff;opacity:.95}
+.mentor .mono .hijab{width:64%;height:auto;color:#EAF3FF;opacity:.92;transform:translateY(-20%);filter:drop-shadow(0 18px 30px rgba(0,0,0,.35));transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.mentor:hover .mono .hijab{transform:translateY(-20%) scale(1.04)}
+.mentor .info{position:absolute;inset:auto 0 0 0;padding:70px 18px 18px;background:linear-gradient(to top,rgba(4,10,24,.96) 30%,rgba(4,10,24,.7) 65%,transparent);color:#fff;z-index:1}
+.mentor .tag{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:rgba(53,224,255,.16);color:#8FEFFF;border:1px solid rgba(53,224,255,.35);margin-bottom:10px}
+.mentor h3{font-size:1.2rem;font-weight:800}
+.mentor p{font-size:.83rem;color:#C3D2EE;max-height:0;opacity:0;overflow:hidden;transition:max-height .5s ease,opacity .4s,margin .4s}
+.mentor:hover p,.mentor:focus-within p,.mentor.show p{max-height:160px;opacity:1;margin-top:8px}
+.mentor .more{position:absolute;top:12px;right:12px;z-index:2;width:36px;height:36px;border-radius:10px;display:none;place-items:center;background:rgba(6,14,31,.6);border:1px solid rgba(255,255,255,.2);color:#fff;backdrop-filter:blur(8px)}
+
+/* testimonials */
+.t-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.tcard{padding:30px 26px;display:flex;flex-direction:column;gap:20px}
+.tcard .q{font-size:3.4rem;line-height:.6;font-weight:800;height:26px}
+.tcard blockquote{font-size:1.06rem;font-weight:500;flex:1}
+.tcard .who{display:flex;align-items:center;gap:12px;font-size:.86rem;color:var(--muted)}
+.tcard .av{width:42px;height:42px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-weight:800;color:#fff;flex-shrink:0}
+.stars{color:var(--amber);letter-spacing:2px;font-size:.95rem}
+
+/* faq */
+.faq-wrap{display:grid;grid-template-columns:.8fr 1.2fr;gap:50px;align-items:start}
+.faq-list{display:flex;flex-direction:column;gap:12px}
+details{border:1px solid var(--line);border-radius:18px;background:var(--surface);transition:border-color .3s}
+details[open]{border-color:var(--line-2)}
+summary{list-style:none;cursor:pointer;padding:20px 22px;font-weight:700;display:flex;justify-content:space-between;gap:16px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary .pm{width:28px;height:28px;border-radius:9px;border:1px solid var(--line-2);display:grid;place-items:center;flex-shrink:0;transition:transform .3s,background .3s}
+details[open] summary .pm{transform:rotate(45deg);background:var(--grad);border-color:transparent;color:#fff}
+details .ans{padding:0 22px 20px;color:var(--muted);font-size:.95rem}
+
+/* contact / cta */
+.cta{position:relative;border-radius:32px;padding:clamp(36px,6vw,70px);overflow:hidden;background:radial-gradient(circle at 15% 20%,rgba(53,224,255,.35),transparent 45%),radial-gradient(circle at 85% 80%,rgba(139,108,255,.5),transparent 50%),linear-gradient(135deg,#0B2A66,#0A1733);color:#fff;border:1px solid rgba(160,200,255,.25)}
+.cta h2{font-size:clamp(2rem,4.6vw,3.4rem);font-weight:800;max-width:640px}
+.cta p{color:#C3D2EE;max-width:540px;margin:14px 0 30px;font-size:1.06rem}
+.cta .btn-ghost{color:#fff;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08)}
+.socials{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:40px}
+.soc{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);transition:transform .25s,background .25s}
+.soc:hover{transform:translateY(-4px);background:rgba(255,255,255,.13)}
+.soc svg{width:34px;height:34px;flex-shrink:0}
+.soc b{display:block;font-size:.98rem}
+.soc small{color:#A9BDE0;font-size:.78rem}
+.cta .tooth-bg{position:absolute;right:-60px;top:-40px;width:340px;opacity:.08;pointer-events:none}
+
+/* footer */
+footer{padding:70px 0 calc(34px + env(safe-area-inset-bottom,0));border-top:1px solid var(--line);margin-top:110px}
+.f-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:34px}
+.f-brand img{height:40px;width:auto;margin-bottom:16px}
+.f-brand .l-light{display:none}
+:root[data-theme="light"] .f-brand .l-light{display:block}
+:root[data-theme="light"] .f-brand .l-dark{display:none}
+.f-brand p{color:var(--muted);font-size:.92rem;max-width:320px}
+.f-icons{display:flex;gap:10px;margin-top:20px}
+.f-icons a{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);transition:transform .2s,border-color .2s}
+.f-icons a:hover{transform:translateY(-3px);border-color:var(--line-2)}
+.f-icons svg{width:20px;height:20px}
+footer h4{font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;color:var(--soft);margin-bottom:16px}
+footer ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+footer ul a{color:var(--muted);font-size:.93rem;transition:color .2s}
+footer ul a:hover{color:var(--ink)}
+.f-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:50px;padding-top:24px;border-top:1px solid var(--line);color:var(--soft);font-size:.85rem}
+
+/* floating */
+.wa-float{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0));z-index:90;width:58px;height:58px;border-radius:50%;background:#25D366;display:grid;place-items:center;box-shadow:0 14px 34px -8px rgba(37,211,102,.7);transition:transform .25s}
+.wa-float:hover{transform:scale(1.08)}
+.wa-float svg{width:30px;height:30px}
+.wa-float::before{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid #25D366;animation:ring 2.4s infinite}
+@keyframes ring{to{transform:scale(1.6);opacity:0}}
+.to-top{position:fixed;right:24px;bottom:calc(88px + env(safe-area-inset-bottom,0));z-index:90;width:46px;height:46px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line-2);display:grid;place-items:center;opacity:0;transform:translateY(12px);pointer-events:none;transition:all .3s;backdrop-filter:var(--glass-blur)}
+.to-top.show{opacity:1;transform:none;pointer-events:auto}
+.to-top svg{width:20px;height:20px}
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--grad);z-index:101;width:0}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(34px);transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1)}
+.rv.in{opacity:1;transform:none}
+
+/* responsive */
+@media (max-width:1024px){
+  .navlinks{display:none}
+  .burger{display:block}
+  .nav-cta{display:none}
+  .nav-right{gap:8px}
+  .hero-grid{grid-template-columns:1fr;text-align:center}
+  .hero p.lead,.stats{margin-inline:auto}
+  .hero-cta{justify-content:center}
+  .hero-vis{margin:10px auto 0;max-width:430px}
+  .b-mission{grid-column:span 6}.b-num{grid-column:span 6;min-height:0}
+  .feat{grid-column:span 3}
+  .journey{grid-template-columns:repeat(2,1fr)}
+  .t-grid{grid-template-columns:1fr 1fr}
+  .faq-wrap{grid-template-columns:1fr;gap:30px}
+  .socials{grid-template-columns:1fr 1fr}
+  .f-grid{grid-template-columns:1fr 1fr}
+  .f-brand{grid-column:span 2}
+}
+@media (max-width:640px){
+  .wrap{padding:0 16px}
+  .sec{padding:80px 0}
+  .sec-head{margin-bottom:36px}
+  .hero{padding-top:calc(112px + env(safe-area-inset-top,0))}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .hero-cta .btn{flex:1 1 100%}
+  .glass-card{font-size:.76rem;padding:9px 12px;gap:9px}
+  .glass-card .dot{width:32px;height:32px}
+  .gc1{left:0;bottom:4%}.gc2{right:0;top:2%}
+  .chip-o{font-size:.68rem;padding:5px 10px}
+  .feat{grid-column:span 6}
+  .card{padding:22px}
+  .journey{grid-template-columns:1fr}
+  .c-tools{flex-direction:column;align-items:stretch}
+  .chips{flex-wrap:wrap;overflow:visible}
+  .chip{flex:1 1 auto;padding:10px 12px}
+  .search{max-width:none}
+  .c-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .c-body{padding:13px 13px 14px}
+  .c-body h3{font-size:.95rem}
+  .c-body p{display:none}
+  .c-link{margin-top:10px;padding-top:10px;font-size:.82rem}
+  .badge{font-size:.62rem;padding:4px 8px;top:8px;left:8px}
+  .m-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .kicker{font-size:.66rem;letter-spacing:.08em;padding:6px 12px}
+  .mentor .info{padding:50px 12px 12px}
+  .mentor h3{font-size:.98rem}
+  .mentor .tag{font-size:.6rem;padding:4px 8px}
+  .mentor .more{display:grid}
+  .mentor .mono span{font-size:3rem}
+  .mentor .mono .hijab,.mentor:hover .mono .hijab{width:52%;transform:translateY(-30%)}
+  .t-grid{grid-template-columns:1fr}
+  .socials{grid-template-columns:1fr 1fr;gap:10px}
+  .soc{flex-direction:column;align-items:flex-start;gap:8px;padding:14px}
+  .soc svg{width:28px;height:28px}
+  .f-grid{grid-template-columns:1fr 1fr;gap:28px}
+  .to-top{right:22px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="bg-fx" aria-hidden="true"><div class="grid"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<!-- ============ HEADER ============ -->
+<header id="hdr">
+  <div class="wrap nav">
+    <a href="#top" class="logo" aria-label="MediVerse Dental home">
+      <img class="l-dark" src="{{IMG:LOGO_WHITE}}" alt="MediVerse Dental">
+      <img class="l-light" src="{{IMG:LOGO_BLUE}}" alt="MediVerse Dental">
+    </a>
+    <nav class="navlinks" aria-label="Primary">
+      <a href="#about">About</a>
+      <a href="#courses">Courses</a>
+      <a href="#mentors">Mentors</a>
+      <a href="#stories">Stories</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-right">
+      <button class="icon-btn lang-btn" id="langBtn" aria-label="Switch language to Bangla" lang="bn">বাংলা</button>
+      <button class="icon-btn theme-btn" id="themeBtn" aria-label="Toggle light and dark theme">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <a class="btn btn-primary nav-cta" href="https://mediversebd.com" target="_blank" rel="noopener">Enroll Now</a>
+      <button class="icon-btn burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mnav"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ MOBILE MENU ============ -->
+<nav class="mnav" id="mnav" aria-label="Mobile" aria-hidden="true">
+  <ol>
+    <li><a href="#top">Home</a></li>
+    <li><a href="#about">About MediVerse</a></li>
+    <li><a href="#courses">Courses</a></li>
+    <li><a href="#mentors">Mentor Panel</a></li>
+    <li><a href="#stories">Student Stories</a></li>
+    <li><a href="#faq">FAQ &amp; Contact</a></li>
+  </ol>
+  <div class="m-foot">
+    <p>Follow MediVerse Dental</p>
+    <div class="m-social">
+      <a href="https://www.facebook.com/share/18R8eQDysQ/" target="_blank" rel="noopener" aria-label="Facebook">{{SVG:FB}}</a>
+      <a href="https://youtube.com/@mediversedental?si=VuCm4kPuqcdEORaJ" target="_blank" rel="noopener" aria-label="YouTube">{{SVG:YT}}</a>
+      <a href="https://t.me/mvdental" target="_blank" rel="noopener" aria-label="Telegram">{{SVG:TG}}</a>
+      <a href="{{WA}}" target="_blank" rel="noopener" aria-label="WhatsApp">{{SVG:WA}}</a>
+    </div>
+    <a class="btn btn-primary" href="https://mediversebd.com" target="_blank" rel="noopener">Enroll at mediversebd.com</a>
+  </div>
+</nav>
+
+<main id="top">
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="kicker rv"><i></i>BDS Education · Built for Bangladesh</span>
+      <h1 class="rv">Future Dentistry<br><span class="grad-text">Begins Here.</span></h1>
+      <div class="bn bn-tag rv">ডেন্টাল শিক্ষার নতুন দিগন্ত</div>
+      <p class="lead rv">Phase-wise BDS courses, expert mentors and exam-focused notes — everything a dental student in Bangladesh needs, on one modern platform.</p>
+      <div class="hero-cta rv">
+        <a class="btn btn-primary" href="#courses"><span>Explore Courses</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="btn btn-ghost" href="#mentors">Meet the Mentors</a>
+      </div>
+      <div class="stats rv">
+        <div class="stat"><b data-count="4700" data-suffix="+">0</b><span>Students reached</span></div>
+        <div class="stat"><b data-count="25" data-suffix="+">0</b><span>Academic courses</span></div>
+        <div class="stat"><b data-count="15" data-suffix="+">0</b><span>Expert mentors</span></div>
+        <div class="stat"><b data-count="100" data-suffix="+">0</b><span>Free classes</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ============ ABOUT ============ -->
+<section class="sec" id="about">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker"><i></i>About MediVerse Dental</span>
+      <h2>Dental education, <span class="grad-text">re-engineered</span> for how you actually study.</h2>
+      <p>MediVerse Dental is an academic platform built by expert mentors to help BDS students learn better, prepare smarter and access quality resources — wherever they are in Bangladesh.</p>
+    </div>
+
+    <div class="bento">
+      <div class="card b-mission rv">
+        <div>
+          <h3>Our goal is simple — make quality dental education accessible, structured and easier to learn.</h3>
+          <p>From 1st Prof SDM to Final Prof OMS, every course is mapped to the BDS curriculum and standard textbooks, taught by mentors who have sat the same exams you're preparing for.</p>
+        </div>
+        <div class="sig"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Trusted by <b>4,700+ BDS students</b> from dental colleges nationwide</span></div>
+      </div>
+      <div class="card b-num rv">
+        <svg viewBox="0 0 200 220"><path d="M100 30c-14-12-40-18-58-8-22 12-26 42-18 70 6 22 10 34 14 60 4 30 10 52 24 52 12 0 14-22 18-44 3-16 8-24 20-24s17 8 20 24c4 22 6 44 18 44 14 0 20-22 24-52 4-26 8-38 14-60 8-28 4-58-18-70-18-10-44-4-58 8z"/></svg>
+        <div class="big"><span data-count="25">0</span>+</div>
+        <p>Courses covering every BDS professional phase</p>
+      </div>
+      <div class="card feat rv">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M10 9l5 2.5-5 2.5z"/><path d="M8 21h8"/></svg></div>
+        <h4>Recorded + live classes</h4><p>Learn at your pace with HD recordings, then clear doubts in live sessions.</p>
+      </div>
+      <div class="card feat rv">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M8 7h8M8 11h6"/></svg></div>
+        <h4>Exam-mapped notes</h4><p>Diagram-heavy class notes, viva prep and question practice built for BDS profs.</p>
+      </div>
+      <div class="card feat rv">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <h4>24/7 mentor support</h4><p>Chatbox support and a mentor panel that actually replies to your questions.</p>
+      </div>
+    </div>
+
+    <div class="journey">
+      <div class="card phase rv" style="--w:25%"><div class="pn">01</div><h4>1st Phase</h4><p>SDM, Dental Anatomy, Physiology, Biochemistry — the foundation, with diagram-heavy notes and viva prep.</p><div class="bar"><i></i></div></div>
+      <div class="card phase rv" style="--w:50%"><div class="pn">02</div><h4>2nd Phase</h4><p>Pharmacology, Pathology, Microbiology — dense subjects distilled into exam-ready summaries.</p><div class="bar"><i></i></div></div>
+      <div class="card phase rv" style="--w:75%"><div class="pn">03</div><h4>3rd Phase</h4><p>Oral Pathology &amp; Medicine, Periodontology, Medicine, Surgery — where clinical thinking takes shape.</p><div class="bar"><i></i></div></div>
+      <div class="card phase rv" style="--w:100%"><div class="pn">04</div><h4>Final Phase</h4><p>OMS, Conservative, Orthodontics, Prosthodontics, Pedodontics — mastery for finals.</p><div class="bar"><i></i></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COURSES ============ -->
+<section class="sec" id="courses" style="padding-top:20px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker"><i></i>Courses</span>
+      <h2>Find the course for <span class="grad-text">your phase</span>.</h2>
+      <p>Filter by professional phase or search a subject — every course is built from board-relevant textbooks and exam patterns.</p>
+    </div>
+
+    <div class="c-tools rv">
+      <div class="chips" role="tablist" aria-label="Filter courses by phase">
+        <button class="chip active" data-f="all" role="tab" aria-selected="true">All</button>
+        <button class="chip" data-f="1" role="tab" aria-selected="false">1st Phase</button>
+        <button class="chip" data-f="2" role="tab" aria-selected="false">2nd Phase</button>
+        <button class="chip" data-f="3" role="tab" aria-selected="false">3rd Phase</button>
+        <button class="chip" data-f="4" role="tab" aria-selected="false">Final Phase</button>
+      </div>
+      <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="cSearch" type="search" placeholder="Search e.g. OPG, Anatomy, Ortho…" aria-label="Search courses"></label>
+    </div>
+
+    <div class="c-grid" id="cGrid">
+{{COURSES}}
+    </div>
+    <div class="empty" id="cEmpty"><span>No course matches that search yet — </span><a href="{{WA}}" target="_blank" rel="noopener" style="color:var(--cyan);font-weight:700">ask us on WhatsApp</a>.</div>
+    <div class="c-more rv"><a class="btn btn-ghost" href="https://mediversebd.com" target="_blank" rel="noopener"><span>See all courses on mediversebd.com</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></a></div>
+  </div>
+</section>
+
+<!-- ============ MENTORS ============ -->
+<section class="sec" id="mentors" style="padding-top:40px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker"><i></i>Expert Mentor Panel</span>
+      <h2>Learn from expert mentors who've <span class="grad-text">sat where you're sitting</span>.</h2>
+      <p>15+ mentors from DMC, DDC, SSMC, MDCH, IMC and more — toppers, FCPS trainees and practising clinicians.</p>
+    </div>
+    <div class="m-grid">
+{{MENTORS}}
+    </div>
+  </div>
+</section>
+
+<!-- ============ STORIES ============ -->
+<section class="sec" id="stories" style="padding-top:40px">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="kicker"><i></i>Student stories</span>
+      <h2>What students say after <span class="grad-text">MediVerse</span>.</h2>
+    </div>
+    <div class="t-grid">
+      <div class="card tcard rv"><div class="q grad-text">“</div><blockquote>The SDM notes were exactly what came in my viva. I didn't need any other book that term.</blockquote><div class="stars">★★★★★</div><div class="who"><span class="av">3P</span><span><b style="color:var(--ink)">3rd Prof student</b><br>Dhaka Dental College</span></div></div>
+      <div class="card tcard rv"><div class="q grad-text">“</div><blockquote>Having a mentor actually reply to my questions changed how I studied for finals.</blockquote><div class="stars">★★★★★</div><div class="who"><span class="av">4P</span><span><b style="color:var(--ink)">4th Prof student</b><br>Chattagram Dental College</span></div></div>
+      <div class="card tcard rv"><div class="q grad-text">“</div><blockquote>The OMS case book format matches the exam so closely it felt like practice runs.</blockquote><div class="stars">★★★★★</div><div class="who"><span class="av">FP</span><span><b style="color:var(--ink)">Final Prof student</b><br>BDS, Bangladesh</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="sec" id="faq" style="padding-top:40px">
+  <div class="wrap faq-wrap">
+    <div class="sec-head rv" style="margin-bottom:0">
+      <span class="kicker"><i></i>FAQ</span>
+      <h2>Questions? <span class="grad-text">Answered.</span></h2>
+      <p>Can't find what you need? Message us on WhatsApp or Telegram — the MediVerse team usually replies within a few hours.</p>
+    </div>
+    <div class="faq-list rv">
+      <details open><summary><span>How do I enroll in a course?</span><span class="pm">+</span></summary><div class="ans">Open the course page on <a href="https://mediversebd.com" target="_blank" rel="noopener" style="color:var(--cyan)">mediversebd.com</a>, tap Enroll and complete payment (bKash / Nagad / card). You get access in your dashboard right away.</div></details>
+      <details><summary><span>Are classes live or recorded?</span><span class="pm">+</span></summary><div class="ans">Both. Core lectures are recorded so you can study at your own pace; live sessions and doubt-clearing classes are announced on our Facebook group and Telegram channel.</div></details>
+      <details><summary><span>How long do I keep access?</span><span class="pm">+</span></summary><div class="ans">Most full courses give you access for up to 2 years — long enough to revise before your professional exam. Check each course page for exact duration.</div></details>
+      <details><summary><span>Can I watch on my phone?</span><span class="pm">+</span></summary><div class="ans">Yes. The platform is website-based and works on any phone, tablet or laptop browser — no app install needed. Bookmarking lets you jump back to where you left off.</div></details>
+      <details><summary><span>Do you offer free classes?</span><span class="pm">+</span></summary><div class="ans">Yes — 100+ free classes are on our YouTube channel. Subscribe to <a href="https://youtube.com/@mediversedental?si=VuCm4kPuqcdEORaJ" target="_blank" rel="noopener" style="color:var(--cyan)">@mediversedental</a> to get notified.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT / CTA ============ -->
+<section class="sec" id="contact" style="padding-top:20px;padding-bottom:0">
+  <div class="wrap">
+    <div class="cta rv">
+      <svg class="tooth-bg" viewBox="0 0 200 220" fill="#fff" aria-hidden="true"><path d="M100 30c-14-12-40-18-58-8-22 12-26 42-18 70 6 22 10 34 14 60 4 30 10 52 24 52 12 0 14-22 18-44 3-16 8-24 20-24s17 8 20 24c4 22 6 44 18 44 14 0 20-22 24-52 4-26 8-38 14-60 8-28 4-58-18-70-18-10-44-4-58 8z"/></svg>
+      <h2>Ready to study smarter this term?</h2>
+      <p>Join thousands of BDS students already learning with MediVerse Dental. Talk to our team or jump straight into a course.</p>
+      <div class="hero-cta" style="margin-bottom:0;justify-content:flex-start">
+        <a class="btn btn-primary" href="https://mediversebd.com" target="_blank" rel="noopener">Start Learning</a>
+        <a class="btn btn-ghost" href="{{WA}}" target="_blank" rel="noopener">Chat on WhatsApp</a>
+      </div>
+      <div class="socials">
+        <a class="soc" href="https://www.facebook.com/share/18R8eQDysQ/" target="_blank" rel="noopener">{{SVG:FB}}<span><b>Facebook</b><small>Updates &amp; community</small></span></a>
+        <a class="soc" href="https://youtube.com/@mediversedental?si=VuCm4kPuqcdEORaJ" target="_blank" rel="noopener">{{SVG:YT}}<span><b>YouTube</b><small>100+ free classes</small></span></a>
+        <a class="soc" href="https://t.me/mvdental" target="_blank" rel="noopener">{{SVG:TG}}<span><b>Telegram</b><small>Notes &amp; notices</small></span></a>
+        <a class="soc" href="{{WA}}" target="_blank" rel="noopener">{{SVG:WA}}<span><b>WhatsApp</b><small>+880 1726-415926</small></span></a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <div class="f-grid">
+      <div class="f-brand">
+        <img class="l-dark" src="{{IMG:LOGO_WHITE}}" alt="MediVerse Dental" loading="lazy">
+        <img class="l-light" src="{{IMG:LOGO_BLUE}}" alt="MediVerse Dental" loading="lazy">
+        <p>Future Dentistry Begins Here. A BDS education platform guided by expert mentors — phase-wise courses, mentor guidance and exam-focused notes for students across Bangladesh.</p>
+        <div class="f-icons">
+          <a href="https://www.facebook.com/share/18R8eQDysQ/" target="_blank" rel="noopener" aria-label="Facebook">{{SVG:FB}}</a>
+          <a href="https://youtube.com/@mediversedental?si=VuCm4kPuqcdEORaJ" target="_blank" rel="noopener" aria-label="YouTube">{{SVG:YT}}</a>
+          <a href="https://t.me/mvdental" target="_blank" rel="noopener" aria-label="Telegram">{{SVG:TG}}</a>
+          <a href="{{WA}}" target="_blank" rel="noopener" aria-label="WhatsApp">{{SVG:WA}}</a>
+        </div>
+      </div>
+      <div><h4>Courses</h4><ul><li><a href="#courses" data-jump="1">1st Phase</a></li><li><a href="#courses" data-jump="2">2nd Phase</a></li><li><a href="#courses" data-jump="3">3rd Phase</a></li><li><a href="#courses" data-jump="4">Final Phase</a></li></ul></div>
+      <div><h4>Explore</h4><ul><li><a href="#about">About</a></li><li><a href="#mentors">Mentor Panel</a></li><li><a href="#stories">Student Stories</a></li><li><a href="#faq">FAQ</a></li></ul></div>
+      <div><h4>Platform</h4><ul><li><a href="https://mediversebd.com" target="_blank" rel="noopener">mediversebd.com</a></li><li><a href="#contact">Contact</a></li><li><a href="https://mediversebd.com" target="_blank" rel="noopener">Privacy Policy</a></li><li><a href="https://mediversebd.com" target="_blank" rel="noopener">Terms of Service</a></li></ul></div>
+    </div>
+    <div class="f-bottom"><span>© <span id="yr">2026</span> <span>MediVerse Dental. All rights reserved.</span></span><span>Made for BDS students, by expert mentors 🦷</span></div>
+  </div>
+</footer>
+
+<button class="to-top" id="toTop" aria-label="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+<a class="wa-float" href="{{WA}}" target="_blank" rel="noopener" aria-label="Chat with MediVerse Dental on WhatsApp"><svg viewBox="0 0 24 24"><path fill="#fff" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.24-.46-2.36-1.46-.87-.78-1.46-1.74-1.63-2.04-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.6-.91-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37s-1.05 1.02-1.05 2.5 1.07 2.9 1.22 3.1c.15.2 2.1 3.2 5.08 4.48.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg></a>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  // theme
+  try{var t=localStorage.getItem('mvd-theme');if(t)root.dataset.theme=t;}catch(e){}
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    var n=root.dataset.theme==='light'?'dark':'light';root.dataset.theme=n;
+    try{localStorage.setItem('mvd-theme',n);}catch(e){}
+  });
+
+  // language (English / Bangla)
+  var BN={{BN_JSON}},lang='en',langBtn=document.getElementById('langBtn'),search=document.getElementById('cSearch');
+  var EN_TITLE=document.title,EN_PH=search.placeholder,BN_DIG='০১২৩৪৫৬৭৮৯';
+  function digits(str){return lang==='bn'?String(str).replace(/[0-9]/g,function(d){return BN_DIG[d];}):String(str);}
+  window.mvdFmt=function(n,suf){return digits(n.toLocaleString('en-US'))+(suf||'');};
+  function setLang(l){
+    lang=l;root.lang=l;
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      if(el.dataset.en===undefined)el.dataset.en=el.innerHTML;
+      el.innerHTML=(l==='bn'&&BN[el.dataset.i18n])||el.dataset.en;
+    });
+    document.title=l==='bn'?BN._title:EN_TITLE;search.placeholder=l==='bn'?BN._search:EN_PH;
+    langBtn.textContent=l==='bn'?'EN':'বাংলা';langBtn.classList.toggle('en',l==='bn');
+    langBtn.setAttribute('lang',l==='bn'?'en':'bn');
+    langBtn.setAttribute('aria-label',l==='bn'?'Switch language to English':'Switch language to Bangla');
+    document.querySelectorAll('[data-count][data-done]').forEach(function(el){el.textContent=mvdFmt(+el.dataset.count,el.dataset.suffix);});
+    try{localStorage.setItem('mvd-lang',l);}catch(e){}
+  }
+  langBtn.addEventListener('click',function(){setLang(lang==='bn'?'en':'bn');});
+  var savedLang=null;try{savedLang=localStorage.getItem('mvd-lang');}catch(e){}
+  if(savedLang==='bn'||(!savedLang&&/^bn/i.test(navigator.language||'')))setLang('bn');
+
+  // hamburger menu
+  var burger=document.getElementById('burger'),mnav=document.getElementById('mnav');
+  function setMenu(open){
+    mnav.classList.toggle('open',open);burger.setAttribute('aria-expanded',open);
+    burger.setAttribute('aria-label',open?'Close menu':'Open menu');
+    mnav.setAttribute('aria-hidden',!open);document.body.classList.toggle('lock',open);
+  }
+  burger.addEventListener('click',function(){setMenu(!mnav.classList.contains('open'));});
+  mnav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){setMenu(false);});});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')setMenu(false);});
+  window.addEventListener('resize',function(){if(innerWidth>1024)setMenu(false);});
+
+  // scroll: header, progress, back-to-top, active link
+  var hdr=document.getElementById('hdr'),prog=document.getElementById('progress'),top=document.getElementById('toTop');
+  var links=[].slice.call(document.querySelectorAll('.navlinks a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  function onScroll(){
+    var y=scrollY,h=document.documentElement.scrollHeight-innerHeight;
+    hdr.classList.toggle('scrolled',y>10);top.classList.toggle('show',y>600);
+    prog.style.width=(h>0?y/h*100:0)+'%';
+    var cur=-1;secs.forEach(function(s,i){if(s&&s.getBoundingClientRect().top<140)cur=i;});
+    links.forEach(function(a,i){a.classList.toggle('active',i===cur);});
+  }
+  addEventListener('scroll',onScroll,{passive:true});onScroll();
+  top.addEventListener('click',function(){scrollTo({top:0,behavior:'smooth'});});
+
+  // reveal + count up
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.rv').forEach(function(el){io.observe(el);});
+  var cio=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(!e.isIntersecting)return;cio.unobserve(e.target);
+    var el=e.target,to=+el.dataset.count,suf=el.dataset.suffix||'',t0=performance.now();
+    (function tick(n){var p=Math.min((n-t0)/1600,1),v=Math.round(to*(1-Math.pow(1-p,3)));
+      el.textContent=mvdFmt(v,p>=1?suf:'');if(p<1)requestAnimationFrame(tick);else el.dataset.done='1';})(t0);
+  });},{threshold:.5});
+  document.querySelectorAll('[data-count]').forEach(function(el){cio.observe(el);});
+
+  // course filter + search
+  var chips=[].slice.call(document.querySelectorAll('.chip')),cards=[].slice.call(document.querySelectorAll('.course'));
+  var q=document.getElementById('cSearch'),empty=document.getElementById('cEmpty'),phase='all';
+  function apply(){
+    var s=q.value.trim().toLowerCase(),shown=0;
+    cards.forEach(function(c){
+      var ok=(phase==='all'||c.dataset.f===phase)&&(!s||c.textContent.toLowerCase().indexOf(s)>-1||(c.dataset.k||'').indexOf(s)>-1);
+      c.classList.toggle('hide',!ok);if(ok)shown++;
+    });
+    empty.style.display=shown?'none':'block';
+  }
+  function setPhase(f){phase=f;chips.forEach(function(c){var on=c.dataset.f===f;c.classList.toggle('active',on);c.setAttribute('aria-selected',on);});apply();}
+  chips.forEach(function(c){c.addEventListener('click',function(){setPhase(c.dataset.f);});});
+  q.addEventListener('input',apply);
+  document.querySelectorAll('[data-jump]').forEach(function(a){a.addEventListener('click',function(){setPhase(a.dataset.jump);});});
+
+  // mentor info toggle (touch)
+  document.querySelectorAll('.mentor .more').forEach(function(b){b.addEventListener('click',function(){
+    var m=b.closest('.mentor');var on=m.classList.toggle('show');b.setAttribute('aria-expanded',on);b.textContent=on?'×':'i';
+  });});
+
+  document.getElementById('yr').textContent=new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
