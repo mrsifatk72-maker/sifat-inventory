@@ -65,12 +65,29 @@ function linkHref(url, onHome) {
 }
 const ext = (item) => (item.open_new_tab || item.is_external || /^https?:/i.test(item.url) ? ' target="_blank" rel="noopener"' : '');
 
-function waUrl(settings) {
+function waUrl(settings, message = settings.whatsapp_message_en) {
   const n = String(settings.whatsapp_number || '').replace(/[^0-9]/g, '');
   if (!n) return 'https://mediversebd.com';
-  const msg = settings.whatsapp_message_en ? `?text=${encodeURIComponent(settings.whatsapp_message_en)}` : '';
+  const msg = message ? `?text=${encodeURIComponent(message)}` : '';
   return `https://wa.me/${n}${msg}`;
 }
+
+// Course pages: WhatsApp messages that name the course (English + Bangla).
+// Same number as everywhere else; only the pre-filled text changes.
+// Adds "Course" / "কোর্স" unless the name already contains it ("SDM Full Course", "Crash Course on …").
+const withCourseWord = (name, word) => (/\bcourse\b|কোর্স/i.test(name) ? name.trim() : `${name.trim()} ${word}`);
+function courseWhatsApp(settings, course) {
+  const en = withCourseWord(course.title_en, 'Course');
+  const bn = withCourseWord(course.title_bn || course.title_en, 'কোর্স');
+  return {
+    en: waUrl(settings, `Hello MediVerse Dental, I would like to know more about your ${en}.`),
+    bn: waUrl(settings, `হ্যালো মেডিভার্স ডেন্টাল, আমি আপনাদের ${bn} সম্পর্কে আরও জানতে চাই।`),
+  };
+}
+// href for a WhatsApp link: the course-specific one when given (with the Bangla
+// version in data-wa-bn for the language switch), otherwise the usual link.
+const waHref = (wa, fallback) => (wa ? `href="${esc(wa.en)}" data-wa-bn="${esc(wa.bn)}"` : `href="${esc(fallback)}"`);
+const isWa = (url) => /^https:\/\/wa\.me\//i.test(url || '');
 
 function initials(name) {
   const parts = String(name).replace('Dr.', '').split(/\s+/).filter((w) => /^[A-Za-z]/.test(w));
@@ -78,7 +95,7 @@ function initials(name) {
 }
 
 // -------------------------------------------------------------- shared ----
-function header(c, i18n, onHome) {
+function header(c, i18n, onHome, wa = null) {
   const s = c.settings;
   const logos = `<img class="l-dark" src="${esc(s.logoDarkUrl)}" alt="${esc(s.site_name)}">
       <img class="l-light" src="${esc(s.logoLightUrl)}" alt="${esc(s.site_name)}">`;
@@ -115,14 +132,14 @@ ${c.nav.mobile.filter((n) => n.style === 'link').map((n) => `    <li><a href="${
   <div class="m-foot">
     <p${i18n.attr(inline('আমাদের সাথে যুক্ত থাকো'))}>Follow ${esc(s.site_name)}</p>
     <div class="m-social">
-${c.socials.filter((x) => x.show_in_header).map((x) => `      <a href="${esc(safeUrl(x.url))}" target="_blank" rel="noopener" aria-label="${esc(x.label_en || x.platform)}">${SOCIAL_SVG[x.platform] || ''}</a>`).join('\n')}
+${c.socials.filter((x) => x.show_in_header).map((x) => `      <a ${waHref(x.platform === 'whatsapp' ? wa : null, safeUrl(x.url))} target="_blank" rel="noopener" aria-label="${esc(x.label_en || x.platform)}">${SOCIAL_SVG[x.platform] || ''}</a>`).join('\n')}
     </div>
 ${c.nav.mobile.filter((n) => n.style === 'button').map((n) => `    <a class="btn btn-primary" href="${esc(safeUrl(n.url))}"${ext(n)}${i18n.attr(n.label_bn && inline(n.label_bn))}>${inline(n.label_en)}</a>`).join('\n')}
   </div>
 </nav>`;
 }
 
-function footer(c, i18n, onHome) {
+function footer(c, i18n, onHome, wa = null) {
   const s = c.settings;
   const text = c.footerSections.find((x) => x.type === 'text');
   const columns = c.footerSections.filter((x) => x.type === 'links').map((sec) => {
@@ -143,7 +160,7 @@ function footer(c, i18n, onHome) {
         <img class="l-light" src="${esc(s.logoLightUrl)}" alt="${esc(s.site_name)}" loading="lazy">
         ${text ? el(i18n, 'p', '', text.body_en, text.body_bn) : ''}
         <div class="f-icons">
-${c.socials.filter((x) => x.show_in_footer).map((x) => `          <a href="${esc(safeUrl(x.url))}" target="_blank" rel="noopener" aria-label="${esc(x.label_en || x.platform)}">${SOCIAL_SVG[x.platform] || ''}</a>`).join('\n')}
+${c.socials.filter((x) => x.show_in_footer).map((x) => `          <a ${waHref(x.platform === 'whatsapp' ? wa : null, safeUrl(x.url))} target="_blank" rel="noopener" aria-label="${esc(x.label_en || x.platform)}">${SOCIAL_SVG[x.platform] || ''}</a>`).join('\n')}
         </div>
       </div>
 ${columns}
@@ -153,7 +170,7 @@ ${columns}
 </footer>
 
 <button class="to-top" id="toTop" aria-label="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-<a class="wa-float" href="${esc(waUrl(s))}" target="_blank" rel="noopener" aria-label="Chat with ${esc(s.site_name)} on WhatsApp">${WA_FLOAT_SVG}</a>`;
+<a class="wa-float" ${waHref(wa, waUrl(s))} target="_blank" rel="noopener" aria-label="Chat with ${esc(s.site_name)} on WhatsApp">${WA_FLOAT_SVG}</a>`;
 }
 
 function mentorCard(m, i18n) {
@@ -178,16 +195,17 @@ function sectionHead(i18n, sec, cls = 'sec-head rv', style = '') {
     </div>`;
 }
 
-function button(i18n, b, extraCls = '', arrow = '') {
+function button(i18n, b, extraCls = '', arrow = '', wa = null) {
+  const href = waHref(isWa(b.url) ? wa : null, safeUrl(b.url));
   const cls = b.style === 'ghost' ? 'btn btn-ghost' : 'btn btn-primary';
   const target = b.new_tab || /^https?:/i.test(b.url) ? ' target="_blank" rel="noopener"' : '';
   if (arrow) {
-    return `<a class="${cls}${extraCls}" href="${esc(safeUrl(b.url))}"${target}><span${i18n.attr(b.label_bn && inline(b.label_bn))}>${inline(b.label_en)}</span>\n          ${arrow}</a>`;
+    return `<a class="${cls}${extraCls}" ${href}${target}><span${i18n.attr(b.label_bn && inline(b.label_bn))}>${inline(b.label_en)}</span>\n          ${arrow}</a>`;
   }
-  return `<a class="${cls}${extraCls}" href="${esc(safeUrl(b.url))}"${target}${i18n.attr(b.label_bn && inline(b.label_bn))}>${inline(b.label_en)}</a>`;
+  return `<a class="${cls}${extraCls}" ${href}${target}${i18n.attr(b.label_bn && inline(b.label_bn))}>${inline(b.label_en)}</a>`;
 }
 
-function contactSection(c, i18n) {
+function contactSection(c, i18n, wa = null) {
   const sec = c.sections.contact;
   if (!sec) return '';
   const btns = (sec.content.buttons || []);
@@ -199,10 +217,10 @@ function contactSection(c, i18n) {
       ${el(i18n, 'h2', '', f(sec, 'heading').en, f(sec, 'heading').bn)}
       ${el(i18n, 'p', '', f(sec, 'body').en, f(sec, 'body').bn)}
       <div class="hero-cta" style="margin-bottom:0;justify-content:flex-start">
-${btns.map((b) => '        ' + button(i18n, b)).join('\n')}
+${btns.map((b) => '        ' + button(i18n, b, '', '', wa)).join('\n')}
       </div>
       <div class="socials">
-${c.socials.filter((x) => x.show_in_contact).map((x) => `        <a class="soc" href="${esc(safeUrl(x.url))}" target="_blank" rel="noopener">${SOCIAL_SVG[x.platform] || ''}<span><b>${esc(x.label_en)}</b>${el(i18n, 'small', '', x.subtitle_en, x.subtitle_bn && x.subtitle_bn !== x.subtitle_en ? x.subtitle_bn : '')}</span></a>`).join('\n')}
+${c.socials.filter((x) => x.show_in_contact).map((x) => `        <a class="soc" ${waHref(x.platform === 'whatsapp' ? wa : null, safeUrl(x.url))} target="_blank" rel="noopener">${SOCIAL_SVG[x.platform] || ''}<span><b>${esc(x.label_en)}</b>${el(i18n, 'small', '', x.subtitle_en, x.subtitle_bn && x.subtitle_bn !== x.subtitle_en ? x.subtitle_bn : '')}</span></a>`).join('\n')}
       </div>
     </div>
   </div>
@@ -395,6 +413,22 @@ function courseCard(co, i18n) {
 }
 
 // ---------------------------------------------------------- course page ----
+// When the visitor switches to Bangla (the site's own script sets <html lang>),
+// WhatsApp links switch to the Bangla message, and back again for English.
+const WA_LANG_SCRIPT = `<script>
+(function(){
+  var root=document.documentElement;
+  function sync(){
+    var bn=root.lang==='bn';
+    document.querySelectorAll('a[data-wa-bn]').forEach(function(a){
+      if(a.dataset.waEn===undefined)a.dataset.waEn=a.getAttribute('href');
+      a.setAttribute('href',bn?a.dataset.waBn:a.dataset.waEn);
+    });
+  }
+  new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:['lang']});
+  sync();
+})();
+</script>`;
 const COURSE_STYLE = `<style>
 /* Course detail page — reuses the site's design tokens and components. */
 .cp-hero{padding-bottom:20px}
@@ -434,6 +468,7 @@ export function renderCourse(c, course, { origin, noindex }) {
   const ctaEn = course.cta_label_en || UI.enroll[0];
   const ctaBn = course.cta_label_bn || UI.enroll[1];
   const details = course.details_en ? pair(course.details_en, course.details_bn) : null;
+  const wa = courseWhatsApp(s, course);
 
   const media = course.flyerUrl
     ? `<img src="${esc(course.flyerUrl)}" alt="${esc(course.title_en)} course flyer"${course.flyerMedia?.width ? ` width="${course.flyerMedia.width}" height="${course.flyerMedia.height}"` : ''}>`
@@ -443,7 +478,7 @@ export function renderCourse(c, course, { origin, noindex }) {
   body.push(`<div class="progress" id="progress"></div>
 <div class="bg-fx" aria-hidden="true"><div class="grid"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 `);
-  body.push(header(c, i18n, false));
+  body.push(header(c, i18n, false, wa));
   body.push(`
 <main id="top">
 <section class="hero cp-hero">
@@ -458,7 +493,7 @@ export function renderCourse(c, course, { origin, noindex }) {
         <div class="hero-cta rv">
           <a class="btn btn-primary" href="${esc(ctaUrl)}" target="_blank" rel="noopener"><span${i18n.attr(inline(ctaBn))}>${inline(ctaEn)}</span>
           ${ARROW_OUT}</a>
-          <a class="btn btn-ghost" href="${esc(waUrl(s))}" target="_blank" rel="noopener"${i18n.attr(UI.askWhatsApp[1])}>${UI.askWhatsApp[0]}</a>
+          <a class="btn btn-ghost" ${waHref(wa)} target="_blank" rel="noopener"${i18n.attr(UI.askWhatsApp[1])}>${UI.askWhatsApp[0]}</a>
         </div>${facts.length ? `
         <div class="cp-facts rv">
 ${facts.map(([label, value]) => `          <div class="stat"><b${i18n.attr(value.bn && inline(value.bn))}>${inline(value.en)}</b>${el(i18n, 'span', '', label.en, label.bn)}</div>`).join('\n')}
@@ -500,9 +535,10 @@ ${course.mentors.map((m) => mentorCard(m, i18n)).join('\n')}
 `);
   }
 
-  body.push(contactSection(c, i18n));
+  body.push(contactSection(c, i18n, wa));
   body.push('</main>\n');
-  body.push(footer(c, i18n, false));
+  body.push(footer(c, i18n, false, wa));
+  body.push(WA_LANG_SCRIPT);
 
   const title = course.seo_title_en || `${course.title_en} — ${s.site_name}`;
   const titleBn = course.seo_title_bn || `${course.title_bn || course.title_en} — ${s.site_name}`;

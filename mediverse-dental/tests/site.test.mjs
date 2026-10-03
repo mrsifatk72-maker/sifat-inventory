@@ -131,3 +131,25 @@ test('both key formats work; secret keys are refused', async () => {
   assert.throws(() => config({ SUPABASE_URL: 'https://p.supabase.co', SUPABASE_ANON_KEY: 'sb_secret_xyz' }), /not a secret key/);
   assert.throws(() => config({ SUPABASE_URL: 'https://p.supabase.co', SUPABASE_ANON_KEY: jwt({ role: 'service_role' }) }), /not a secret key/);
 });
+
+test('every course page pre-fills WhatsApp with its own course name (EN + BN)', async () => {
+  const unescape = (s) => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  const named = (name, word) => (/\bcourse\b|কোর্স/i.test(name) ? name.trim() : `${name.trim()} ${word}`);
+  for (const c of FIXTURE.courses) {
+    const { html } = await get(`/courses/${c.slug}`);
+    const links = [...html.matchAll(/href="(https:\/\/wa\.me\/[^"]*)"(?: data-wa-bn="([^"]*)")?/g)];
+    assert.ok(links.length >= 4, `${c.slug}: WhatsApp links found (${links.length})`);
+    for (const [, en, bn] of links) {
+      assert.ok(bn, `${c.slug}: every WhatsApp link has a Bangla version`);
+      const enUrl = new URL(unescape(en)), bnUrl = new URL(unescape(bn));
+      assert.equal(enUrl.origin + enUrl.pathname, 'https://wa.me/8801726415926', 'same WhatsApp number');
+      assert.equal(bnUrl.origin + bnUrl.pathname, 'https://wa.me/8801726415926', 'same WhatsApp number (BN)');
+      assert.equal(enUrl.searchParams.get('text'), `Hello MediVerse Dental, I would like to know more about your ${named(c.title_en, 'Course')}.`);
+      assert.equal(bnUrl.searchParams.get('text'), `হ্যালো মেডিভার্স ডেন্টাল, আমি আপনাদের ${named(c.title_bn || c.title_en, 'কোর্স')} সম্পর্কে আরও জানতে চাই।`);
+      assert.ok(!/[ &]/.test(unescape(en).split('?text=')[1]), 'course name is URL-encoded');
+    }
+  }
+  const home = (await get('/')).html;
+  assert.ok(!home.includes('data-wa-bn'), 'homepage WhatsApp links unchanged');
+  assert.ok(home.includes('?text=Hello%20MediVerse%20Dental%2C%20I%20would%20like%20to%20know%20more%20about%20your%20BDS%20courses.'), 'homepage keeps the general message');
+});

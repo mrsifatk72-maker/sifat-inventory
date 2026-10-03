@@ -68,10 +68,16 @@ async function page(path, { mobile = false } = {}) {
   const cta = await p.$('.cp-info .btn-primary');
   check('course page: Enroll → Mediverse platform', (await cta.getAttribute('href')) === 'https://mediversebd.com/courses/essential-medicine-for-bds' && (await cta.getAttribute('target')) === '_blank');
   check('course page: mentor shown', (await p.textContent('#mentors .mentor h3')) === 'Dr. M R Sifat');
+  const waEn = await p.getAttribute('.cp-info .btn-ghost', 'href');
+  check('course page: WhatsApp message names the course (EN)', decodeURIComponent(waEn).includes('your Essential Medicine for BDS Course.'), waEn);
   await p.click('#langBtn');
+  const waBn = await p.getAttribute('.cp-info .btn-ghost', 'href');
+  check('course page: WhatsApp message switches to Bangla', decodeURIComponent(waBn).includes('আমি আপনাদের Essential Medicine for BDS কোর্স সম্পর্কে'), waBn);
+  check('course page: floating WhatsApp button switches too', decodeURIComponent(await p.getAttribute('.wa-float', 'href')).includes('আপনাদের Essential Medicine'));
   check('course page: Bangla', /[ঀ-৿]/.test(await p.textContent('.cp-info .lead')) && /[ঀ-৿]/.test(await p.textContent('.cp-info .btn-primary')));
   if (shots) await p.screenshot({ path: `${shots}/course-desktop-bn.png`, fullPage: true });
   await p.click('#langBtn');
+  check('course page: WhatsApp back to English', (await p.getAttribute('.cp-info .btn-ghost', 'href')) === waEn);
   if (shots) await p.screenshot({ path: `${shots}/course-desktop-en.png`, fullPage: true });
   await p.click('#themeBtn');
   check('course page: theme toggle', await p.evaluate(() => document.documentElement.dataset.theme) === 'light');
