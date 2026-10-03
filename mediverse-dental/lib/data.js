@@ -80,7 +80,7 @@ export async function loadContent(cfg = config(), fetchImpl = fetch) {
 
   // Courses are listed phase by phase (1st, 2nd, 3rd, Final), then by their own order,
   // so a newly added course appears inside its phase, not at the top.
-  const phaseRank = (p) => (p ? [p.sort_order ?? 0, p.code ?? 0] : [Infinity, Infinity]);
+  const phaseRank = (p) => (p ? [p.sort_order ?? 0, p.code ?? 0] : [1e9, 1e9]); // no phase (postgraduate) → after BDS phases
   courses.sort((a, b) => {
     const [pa, ca] = phaseRank(a.phase), [pb, cb] = phaseRank(b.phase);
     return pa - pb || ca - cb || (a.sort_order ?? 0) - (b.sort_order ?? 0);

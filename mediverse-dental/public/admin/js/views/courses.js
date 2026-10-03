@@ -15,7 +15,7 @@ export async function render(ctx) {
 async function list({ root, setTitle }) {
   setTitle('Courses');
   const [courses, phases, media] = await Promise.all([
-    q(sb.from('courses').select('id,slug,title_en,title_bn,status,archived_at,phase_id,flyer_media_id,sort_order').order('sort_order').order('title_en')),
+    q(sb.from('courses').select('*').order('sort_order').order('title_en')),
     q(sb.from('phases').select('id,name_en,code').order('sort_order')),
     q(sb.from('media').select('id,path').like('path', 'flyers/%')),
   ]);
@@ -27,7 +27,7 @@ async function list({ root, setTitle }) {
 
   const search = h('input', { type: 'search', placeholder: 'Search by name or slug…', 'aria-label': 'Search courses', id: 'courseSearch' });
   const filter = select('current', [['current', 'All current'], ['active', 'Active'], ['upcoming', 'Upcoming'], ['hidden', 'Hidden'], ['archived', 'Archived (removed)']], { 'aria-label': 'Filter by status', id: 'courseFilter' });
-  const phaseFilter = select('', [['', 'All phases'], ...phases.map((p) => [p.id, p.name_en])], { 'aria-label': 'Filter by phase' });
+  const phaseFilter = select('', [['', 'All phases & levels'], ...phases.map((p) => [p.id, p.name_en]), ...(courses.some((c) => 'level' in c) ? [['pg', 'Postgraduate']] : [])], { 'aria-label': 'Filter by phase' });
   const box = h('div', { class: 'list', id: 'courseList' });
   const countEl = h('p', { class: 'muted small' });
 
@@ -37,7 +37,7 @@ async function list({ root, setTitle }) {
     const rows = courses.filter((c) => {
       if (f === 'archived' ? !c.archived_at : c.archived_at) return false;
       if (!['current', 'archived'].includes(f) && c.status !== f) return false;
-      if (phaseFilter.value && c.phase_id !== phaseFilter.value) return false;
+      if (phaseFilter.value === 'pg' ? c.level !== 'postgraduate' : phaseFilter.value && c.phase_id !== phaseFilter.value) return false;
       return !term || [c.title_en, c.title_bn, c.slug].some((s) => (s || '').toLowerCase().includes(term));
     });
     clear(box);
@@ -47,7 +47,7 @@ async function list({ root, setTitle }) {
       const path = mediaPath.get(c.flyer_media_id);
       box.append(h('a', { class: 'row', href: `/admin/courses/${c.id}`, 'data-link': '' },
         path ? h('img', { class: 'thumb', src: publicUrl(path), alt: '', loading: 'lazy' }) : h('div', { class: 'thumb' }),
-        h('div', { class: 'meta' }, h('b', {}, c.title_en), h('small', {}, `${phaseName.get(c.phase_id) || ''} · /courses/${c.slug}`)),
+        h('div', { class: 'meta' }, h('b', {}, c.title_en), h('small', {}, `${phaseName.get(c.phase_id) || (c.level === 'postgraduate' ? 'Postgraduate' : '')} · /courses/${c.slug}`)),
         h('div', { class: 'side-info' }, c.archived_at ? h('span', { class: 'badge archived' }, 'archived') : h('span', { class: `badge ${c.status}` }, c.status))));
     }
   };
@@ -73,6 +73,8 @@ async function edit({ root, setTitle, navigate, setDirtyCheck, role }, id) {
     put(root, h('div', { class: 'empty' }, 'Course not found. ', h('a', { href: '/admin/courses', 'data-link': '' }, 'Back to courses')));
     return;
   }
+  // Level (Undergraduate/Postgraduate) exists once the "course level" SQL has been run.
+  const hasLevel = rows[0] ? 'level' in rows[0] : await q(sb.from('courses').select('level').limit(1)).then(() => true, () => false);
   const c = rows[0] || { status: 'hidden', info: {}, search_keywords: [], sort_order: 1000, phase_id: phases[0]?.id, cta_label_en: 'Enroll on Mediverse', cta_label_bn: 'মেডিভার্সে এনরোল করো' };
   const flyer = c.flyer_media_id ? (await q(sb.from('media').select('*').eq('id', c.flyer_media_id).limit(1)))[0] : null;
   const info = c.info && typeof c.info === 'object' ? c.info : {};
@@ -83,7 +85,8 @@ async function edit({ root, setTitle, navigate, setDirtyCheck, role }, id) {
     title_en: text(c.title_en, { required: true, maxlength: 160, id: 'title_en' }),
     title_bn: text(c.title_bn, { maxlength: 160, lang: 'bn', id: 'title_bn' }),
     slug: text(c.slug, { maxlength: 80, id: 'slug', autocapitalize: 'off', spellcheck: 'false' }),
-    phase_id: select(c.phase_id, phases.map((p) => [p.id, p.name_en]), { id: 'phase_id' }),
+    phase_id: select(c.phase_id || '', [...(hasLevel ? [['', '— No phase (postgraduate) —']] : []), ...phases.map((p) => [p.id, p.name_en])], { id: 'phase_id' }),
+    ...(hasLevel ? { level: select(c.level || 'undergraduate', [['undergraduate', 'Undergraduate (BDS)'], ['postgraduate', 'Postgraduate']], { id: 'level' }) } : {}),
     status: select(c.status, STATUS, { id: 'status' }),
     external_url: h('input', { type: 'url', value: c.external_url || '', id: 'external_url', placeholder: 'https://mediversebd.com/courses/…', inputmode: 'url' }),
     cta_label_en: text(c.cta_label_en, { maxlength: 60 }),
@@ -103,8 +106,16 @@ async function edit({ root, setTitle, navigate, setDirtyCheck, role }, id) {
     seo_description_bn: area(c.seo_description_bn, { maxlength: 300, lang: 'bn' }),
   };
   for (const [k, el] of Object.entries(f)) el.id ||= k;
+  if (hasLevel) {
+    // Undergraduate courses need a BDS phase; postgraduate ones may have none.
+    f.level.addEventListener('change', () => {
+      if (f.level.value === 'undergraduate' && !f.phase_id.value) f.phase_id.value = phases[0]?.id || '';
+      if (f.level.value === 'postgraduate' && !rows[0]) f.phase_id.value = '';
+      f.phase_id.dispatchEvent(new Event('change'));
+    });
+  }
   // New course: put it at the end of its phase (the website lists courses phase by phase).
-  const nextOrder = (phaseId) => Math.max(0, ...orders.filter((o) => o.phase_id === phaseId).map((o) => o.sort_order)) + 10;
+  const nextOrder = (phaseId) => Math.max(0, ...orders.filter((o) => (o.phase_id || '') === (phaseId || '')).map((o) => o.sort_order)) + 10;
   if (!id) {
     f.sort_order.value = nextOrder(f.phase_id.value);
     let orderTouched = false;
@@ -149,6 +160,7 @@ async function edit({ root, setTitle, navigate, setDirtyCheck, role }, id) {
       h('div', { class: 'grid2' }, field('Name (English) *', f.title_en), field('Name (বাংলা)', f.title_bn, 'Leave empty to show the English name.')),
       field('Web address (slug)', f.slug, 'Lowercase letters, numbers and dashes. Page: /courses/<slug>. Changing it breaks old links.')),
     h('fieldset', {}, h('legend', {}, 'Publishing'),
+      hasLevel ? field('Level', f.level, 'Undergraduate = BDS phase-wise courses. Postgraduate courses show under the “Postgraduate” tab when it is turned on (Homepage → Courses).') : null,
       h('div', { class: 'grid2' }, field('Phase', f.phase_id), field('Status', f.status)),
       field('Display order inside the phase', f.sort_order, 'Courses are shown phase by phase; inside a phase, smaller numbers come first.')),
     h('fieldset', {}, h('legend', {}, 'Enrollment (Mediverse platform)'),
@@ -177,6 +189,7 @@ async function edit({ root, setTitle, navigate, setDirtyCheck, role }, id) {
     const v = read();
     const slug = v.slug.trim();
     if (!v.title_en.trim()) return bad(f.title_en, 'English name is required.');
+    if (!v.phase_id && (!hasLevel || v.level !== 'postgraduate')) return bad(f.phase_id, 'Choose a phase (only postgraduate courses can be without a phase).');
     if (!SLUG_RE.test(slug)) return bad(f.slug, 'Slug must use only lowercase letters, numbers and single dashes (e.g. decode-the-opg).');
     const url = v.external_url.trim();
     if (url && !/^https:\/\/[^\s<>"'`]+$/i.test(url)) return bad(f.external_url, 'The enrollment URL must start with https:// and contain no spaces.');
@@ -199,7 +212,7 @@ async function edit({ root, setTitle, navigate, setDirtyCheck, role }, id) {
     const n = (s) => (s.trim() ? s.trim() : null);
     const row = {
       slug, title_en: v.title_en.trim(), title_bn: n(v.title_bn),
-      phase_id: v.phase_id, status: v.status, sort_order: Number(v.sort_order),
+      phase_id: v.phase_id || null, status: v.status, sort_order: Number(v.sort_order), ...(hasLevel ? { level: v.level } : {}),
       external_url: url || null, cta_label_en: n(v.cta_label_en), cta_label_bn: n(v.cta_label_bn),
       short_desc_en: n(v.short_desc_en), short_desc_bn: n(v.short_desc_bn),
       details_en: n(v.details_en), details_bn: n(v.details_bn),

@@ -15,7 +15,7 @@ export async function render(ctx) {
 async function list({ root, setTitle }) {
   setTitle('Mentors');
   const [mentors, media, links] = await Promise.all([
-    q(sb.from('mentors').select('id,slug,name,designation_en,status,archived_at,photo_media_id,avatar_style').order('sort_order').order('name')),
+    q(sb.from('mentors').select('id,slug,name,designation_en,status,archived_at,photo_media_id,avatar_style,sort_order').order('sort_order').order('name')),
     q(sb.from('media').select('id,path').like('path', 'mentors/%')),
     q(sb.from('course_mentors').select('mentor_id')),
   ]);
@@ -25,6 +25,28 @@ async function list({ root, setTitle }) {
   const filter = select('current', [['current', 'All current'], ['active', 'Active'], ['hidden', 'Hidden'], ['archived', 'Archived (removed)']], { 'aria-label': 'Filter' });
   const box = h('div', { class: 'list', id: 'mentorList' });
   const countEl = h('p', { class: 'muted small' });
+  // ↑ ↓ : move a mentor one place; the website shows mentors in this order.
+  let moving = false;
+  async function move(m, dir) {
+    if (moving) return;
+    const current = mentors.filter((x) => !x.archived_at);
+    const i = current.indexOf(m), j = i + dir;
+    if (j < 0 || j >= current.length) return;
+    [current[i], current[j]] = [current[j], current[i]];
+    moving = true;
+    try {
+      const changes = [];
+      current.forEach((x, k) => { const order = (k + 1) * 10; if (x.sort_order !== order) changes.push([x, order]); });
+      for (const [x, order] of changes) {
+        await q(sb.from('mentors').update({ sort_order: order }).eq('id', x.id).select('id').single());
+        x.sort_order = order;
+      }
+      mentors.sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
+      toast(`${m.name} moved ${dir < 0 ? 'up' : 'down'}.`);
+    } catch (err) { toast(errorText(err), 'err'); }
+    moving = false;
+    draw();
+  }
   const draw = () => {
     const term = search.value.trim().toLowerCase();
     const rows = mentors.filter((m) => {
@@ -38,11 +60,17 @@ async function list({ root, setTitle }) {
     for (const m of rows) {
       const path = m.avatar_style === 'photo' && mediaPath.get(m.photo_media_id);
       const n = courseCount.get(m.id) || 0;
-      box.append(h('a', { class: 'row', href: `/admin/mentors/${m.id}`, 'data-link': '' },
+      const canMove = filter.value === 'current' && !term;
+      const link = h('a', { class: 'row', href: `/admin/mentors/${m.id}`, 'data-link': '' },
         path ? h('img', { class: 'thumb round', src: publicUrl(path), alt: '', loading: 'lazy' }) : h('div', { class: 'thumb round' }),
         h('div', { class: 'meta' }, h('b', {}, m.name), h('small', {}, `${m.designation_en || ''} · ${n} course${n === 1 ? '' : 's'}`)),
-        h('div', { class: 'side-info' }, m.archived_at ? h('span', { class: 'badge archived' }, 'archived') : h('span', { class: `badge ${m.status}` }, m.status))));
+        h('div', { class: 'side-info' }, m.archived_at ? h('span', { class: 'badge archived' }, 'archived') : h('span', { class: `badge ${m.status}` }, m.status)));
+      const idx = rows.indexOf(m);
+      box.append(canMove ? h('div', { class: 'row-wrap' }, link, h('div', { class: 'order-btns' },
+        h('button', { class: 'btn btn-sm', type: 'button', 'aria-label': `Move ${m.name} up`, disabled: idx === 0, onclick: () => move(m, -1) }, '↑'),
+        h('button', { class: 'btn btn-sm', type: 'button', 'aria-label': `Move ${m.name} down`, disabled: idx === rows.length - 1, onclick: () => move(m, 1) }, '↓'))) : link);
     }
+    if (rows.length > 1 && filter.value === 'current' && !term) countEl.textContent += ' · use ↑ ↓ to change the order on the website';
   };
   search.addEventListener('input', draw); filter.addEventListener('input', draw);
   put(root, 

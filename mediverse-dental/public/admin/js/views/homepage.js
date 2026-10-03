@@ -149,6 +149,8 @@ async function edit({ root, setTitle, setDirtyCheck, navigate }, key) {
     },
   }) : null;
   const visible = checkbox('Show this section on the website', s.is_visible, { id: 'is_visible' });
+  // Courses section: optional Undergraduate / Postgraduate switch on the website.
+  const levelSwitch = key === 'courses' ? checkbox('Show “Undergraduate (BDS) / Postgraduate” switch above the courses', content.show_level_switch === true, { id: 'show_level_switch' }) : null;
   const lists = await Promise.all((LISTS[key] || []).map(async (cfg) => {
     const data = await q(sb.from(cfg.table).select('*').order('sort_order'));
     return { cfg, ids: data.map((x) => x.id), ed: listEditor(cfg, data) };
@@ -159,10 +161,12 @@ async function edit({ root, setTitle, setDirtyCheck, navigate }, key) {
     text: Object.fromEntries(keys.map((k) => [k, [inputs[k].en.value, inputs[k].bn.value]])),
     buttons: buttons ? buttons.read() : null,
     lists: lists.map((l) => l.ed.read()),
+    levelSwitch: levelSwitch ? levelSwitch.input.checked : null,
   });
   const err = h('div', { class: 'form-error hidden', role: 'alert' });
   const form = h('form', { novalidate: true, id: 'sectionForm' }, err,
-    h('fieldset', {}, h('legend', {}, 'Visibility'), visible.el),
+    h('fieldset', {}, h('legend', {}, 'Visibility'), visible.el,
+      levelSwitch ? [levelSwitch.el, h('p', { class: 'muted small' }, 'Turn on when you have postgraduate courses. Off = all courses are shown together, as now. Set each course’s level on its edit page.')] : null),
     fields.length ? h('fieldset', {}, h('legend', {}, 'Text'),
       h('p', { class: 'muted small rep-label' }, 'Tips: select words and tap B for bold or Aa for gradient colour · press Enter for a new line.'), fields) : null,
     buttons ? h('fieldset', {}, h('legend', {}, 'Buttons'), buttons.el) : null,
@@ -190,6 +194,7 @@ async function edit({ root, setTitle, setDirtyCheck, navigate }, key) {
       if (k in bn || vb) next.bn[k] = vb;
     }
     if (v.buttons) next.buttons = v.buttons;
+    if (levelSwitch) next.show_level_switch = v.levelSwitch;
     for (const [i, l] of lists.entries()) checkList(l.cfg, v.lists[i]); // check everything before saving anything
     for (const [i, l] of lists.entries()) await saveList(l.cfg, v.lists[i], l.ids);
     const saved = await q(sb.from('page_sections').update({ content: next, is_visible: v.visible }).eq('id', s.id).select().single());

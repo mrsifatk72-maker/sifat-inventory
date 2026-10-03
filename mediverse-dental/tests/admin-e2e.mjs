@@ -704,6 +704,92 @@ if (shots) await p.screenshot({ path: `${shots}/settings.png`, fullPage: true })
   check('authz non-admin: cannot add reviews', spam.status === 403, String(spam.status));
   stack.sql('delete from course_reviews');
 }
+
+// ------------------------------------------------------------------ mentor order (↑ ↓)
+{
+  const mentorOrder = async () => [...(await site('/')).html.matchAll(/<article class="mentor[^"]*"[\s\S]*?<h3>([^<]+)<\/h3>/g)].map((m) => m[1]);
+  const before = await mentorOrder();
+  await p.goto(base + '/admin/mentors');
+  await p.waitForSelector('#mentorList .order-btns');
+  check('mentors: ↑ ↓ buttons shown (first ↑ and last ↓ disabled)', await p.isDisabled('#mentorList .row-wrap >> nth=0 >> button[aria-label^="Move"][aria-label$="up"]') && await p.isDisabled('#mentorList .row-wrap >> nth=-1 >> button[aria-label$="down"]'));
+  await clearToasts(p);
+  await p.click(`button[aria-label="Move ${before[0]} down"]`);
+  check('mentors: moved', /moved down/.test(await toastText(p)));
+  const after = await mentorOrder();
+  check('mentors: new order on the website', after[0] === before[1] && after[1] === before[0], `${before.slice(0, 2)} → ${after.slice(0, 2)}`);
+  check('mentors: new order in the admin list', (await p.textContent('#mentorList .row-wrap >> nth=0 >> b')) === before[1]);
+  await clearToasts(p);
+  await p.click(`button[aria-label="Move ${before[0]} up"]`);
+  await toastText(p);
+  check('mentors: moved back', JSON.stringify(await mentorOrder()) === JSON.stringify(before));
+  await p.fill('#mentorSearch', 'sifat');
+  check('mentors: ↑ ↓ hidden while searching', !(await p.$('#mentorList .order-btns')));
+}
+
+// ------------------------------------------------------------------ undergraduate / postgraduate
+{
+  await p.goto(base + '/admin/courses/new');
+  await p.waitForSelector('#courseForm');
+  check('level: Level field on the course form', await p.isVisible('#level'));
+  await p.fill('#title_en', 'FCPS Part-1 Prep');
+  await p.selectOption('#phase_id', '');
+  await p.click('#saveBtn');
+  await p.waitForSelector('.form-error:not(.hidden)');
+  check('level: undergraduate course must have a phase', /Choose a phase/.test(await p.textContent('.form-error')));
+  await p.selectOption('#level', 'postgraduate');
+  await p.selectOption('#phase_id', '');
+  await p.selectOption('#status', 'active');
+  await p.fill('#external_url', 'https://mediversebd.com/courses/fcps-part-1');
+  await clearToasts(p);
+  await p.click('#saveBtn');
+  check('level: postgraduate course without phase saved', /Course created/.test(await toastText(p)));
+  await p.waitForURL(/\/admin\/courses\/[0-9a-f-]{36}$/);
+  let home = (await site('/')).html;
+  check('level: switch OFF → no tabs, PG course listed with "Postgraduate" badge', !home.includes('data-lvl=') && /data-f="pg"[^>]*href="\/courses\/fcps-part-1-prep"[\s\S]*?<span class="badge"[^>]*>Postgraduate<\/span>/.test(home));
+  check('level: PG course page works', (await site('/courses/fcps-part-1-prep')).status === 200 && (await site('/courses/fcps-part-1-prep')).html.includes('<i></i>Postgraduate</span>'));
+  await p.goto(base + '/admin/homepage/courses');
+  await p.waitForSelector('#show_level_switch');
+  check('level: switch is OFF by default', !(await p.isChecked('#show_level_switch')));
+  await p.check('#show_level_switch');
+  await clearToasts(p);
+  await p.click('#saveBtn');
+  await toastText(p);
+  home = (await site('/')).html;
+  check('level: switch ON → Undergraduate / Postgraduate tabs on website', home.includes('data-lvl="ug"') && home.includes('data-lvl="pg"') && home.includes('data-l="pg"'));
+  {
+    const pp = await ctx.newPage();
+    await pp.goto(base + '/');
+    if (await pp.evaluate(() => document.documentElement.lang) === 'bn') await pp.click('#langBtn');
+    const vis = () => pp.evaluate(() => [...document.querySelectorAll('.course')].filter((c) => getComputedStyle(c).display !== 'none').length);
+    check('level: Undergraduate tab shows the 22 BDS courses', await vis() === 22, String(await vis()));
+    await pp.click('[data-lvl="pg"]');
+    check('level: Postgraduate tab shows only PG course, phase chips hidden', await vis() === 1 && await pp.evaluate(() => getComputedStyle(document.querySelector('.c-tools .chips:not(.lvl-tabs)')).display === 'none'));
+    await pp.addStyleTag({ content: '.rv{opacity:1!important;transform:none!important}' });
+    if (shots) { await pp.evaluate(() => document.querySelector('#courses').scrollIntoView()); await pp.screenshot({ path: `${shots}/level-pg.png` }); }
+    await pp.click('[data-lvl="ug"]');
+    await pp.click('.chip[data-f="3"]');
+    check('level: phase filter still works inside Undergraduate', await vis() === 4);
+    await pp.click('.chip[data-f="all"]');
+    await pp.fill('#cSearch', 'opg');
+    check('level: search still works', await vis() === 1);
+    await pp.close();
+  }
+  stack.sql("delete from courses where slug='fcps-part-1-prep'");
+  {
+    const pp = await ctx.newPage();
+    await pp.goto(base + '/');
+    await pp.click('[data-lvl="pg"]');
+    check('level: no PG courses → "coming soon" message', await pp.isVisible('#pgSoon'));
+    await pp.close();
+  }
+  await p.goto(base + '/admin/homepage/courses');
+  await p.waitForSelector('#show_level_switch');
+  await p.uncheck('#show_level_switch');
+  await clearToasts(p);
+  await p.click('#saveBtn');
+  await toastText(p);
+  check('level: switch OFF again → page as before', !(await site('/')).html.includes('data-lvl='));
+}
 check('admin (owner session): no JavaScript or CSP errors', errors.length === 0, errors.join(' | '));
 await ctx.close();
 

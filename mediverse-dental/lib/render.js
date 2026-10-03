@@ -27,6 +27,9 @@ const UI = {
   comingSoon: ['Coming soon', 'শীঘ্রই আসছে'],
   classes: ['Classes', 'ক্লাস'],
   access: ['Access', 'অ্যাক্সেস'],
+  levelUg: ['Undergraduate (BDS)', 'আন্ডারগ্র্যাজুয়েট (BDS)'],
+  levelPg: ['Postgraduate', 'পোস্টগ্র্যাজুয়েট'],
+  pgSoon: ['Postgraduate courses are coming soon.', 'পোস্টগ্র্যাজুয়েট কোর্স শীঘ্রই আসছে।'],
   reviewsKicker: ['Student reviews', 'স্টুডেন্টদের রিভিউ'],
   reviewsOne: ['review', 'টি রিভিউ'],
   reviewsMany: ['reviews', 'টি রিভিউ'],
@@ -327,13 +330,20 @@ ${c.phases.map((p, i) => `      <div class="card phase rv" style="--w:${Math.rou
   if (S.courses) {
     const cs = S.courses;
     const more = (cs.content.buttons || [])[0];
+    // Optional Undergraduate / Postgraduate switch (Admin → Homepage → Courses). Off = page unchanged.
+    const levels = cs.content.show_level_switch === true;
+    const levelTabs = levels ? `      <div class="chips lvl-tabs" role="tablist" aria-label="Course level">
+        <button class="lvl active" data-lvl="ug" role="tab" aria-selected="true"${i18n.attr(UI.levelUg[1])}>${UI.levelUg[0]}</button>
+        <button class="lvl" data-lvl="pg" role="tab" aria-selected="false"${i18n.attr(UI.levelPg[1])}>${UI.levelPg[0]}</button>
+      </div>
+` : '';
     out.push(`<!-- ============ COURSES ============ -->
 <section class="sec" id="courses" style="padding-top:20px">
   <div class="wrap">
 ${sectionHead(i18n, cs)}
 
-    <div class="c-tools rv">
-      <div class="chips" role="tablist" aria-label="Filter courses by phase">
+    <div class="c-tools rv${levels ? ' has-lvl' : ''}">
+${levelTabs}      <div class="chips" role="tablist" aria-label="Filter courses by phase">
         <button class="chip active" data-f="all" role="tab" aria-selected="true"${i18n.attr('সব')}>All</button>
 ${c.phases.map((p) => `        <button class="chip" data-f="${p.code}" role="tab" aria-selected="false"${i18n.attr(p.name_bn && inline(p.name_bn))}>${inline(p.name_en)}</button>`).join('\n')}
       </div>
@@ -341,13 +351,15 @@ ${c.phases.map((p) => `        <button class="chip" data-f="${p.code}" role="tab
     </div>
 
     <div class="c-grid" id="cGrid">
-${c.courses.map((co) => courseCard(co, i18n)).join('\n')}
-    </div>
+${c.courses.map((co) => courseCard(co, i18n, levels)).join('\n')}
+    </div>${levels ? `
+    <div class="empty" id="pgSoon"><span${i18n.attr(UI.pgSoon[1])}>${UI.pgSoon[0]}</span></div>` : ''}
     <div class="empty" id="cEmpty"><span${i18n.attr('এই নামে এখনো কোনো কোর্স নেই — ')}>No course matches that search yet — </span><a href="${esc(waUrl(s))}" target="_blank" rel="noopener" style="color:var(--cyan);font-weight:700"${i18n.attr('হোয়াটসঅ্যাপে আমাদের জিজ্ঞেস করো')}>ask us on WhatsApp</a>.</div>
 ${more ? `    <div class="c-more rv">${button(i18n, more, '', ARROW_OUT)}</div>` : ''}
   </div>
 </section>
 `);
+    if (levels) out.push(LEVEL_ASSETS);
   }
 
   if (S.mentors) {
@@ -406,13 +418,45 @@ ${c.faqs.map((q, i) => `      <details${i === 0 ? ' open' : ''}><summary>${el(i1
   });
 }
 
-function courseCard(co, i18n) {
+const isPg = (co) => co.level === 'postgraduate';
+// Undergraduate / Postgraduate switch (only added when turned on in the admin).
+// Runs after the page's own course filter script, and keeps its search + phase chips working.
+const LEVEL_ASSETS = `<style>.course.lvl-hide{display:none}#pgSoon{display:none}.c-tools.has-lvl{flex-wrap:wrap}.c-tools .lvl-tabs{flex:1 1 100%;max-width:max-content}
+.lvl{padding:10px 16px;border-radius:11px;font-weight:700;font-size:.88rem;color:var(--muted);white-space:nowrap;transition:all .25s}
+.lvl.active{background:var(--grad);color:#fff;box-shadow:0 8px 20px -8px rgba(61,139,255,.8)}.lvl:not(.active):hover{color:var(--ink)}
+@media (max-width:640px){.lvl{flex:1 1 auto;padding:10px 12px}}</style>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var tabs=[].slice.call(document.querySelectorAll('[data-lvl]'));if(!tabs.length)return;
+  var cards=[].slice.call(document.querySelectorAll('.course[data-l]')),phases=document.querySelector('.c-tools .chips:not(.lvl-tabs)'),
+      empty=document.getElementById('cEmpty'),soon=document.getElementById('pgSoon'),lvl='ug';
+  function fix(){
+    var shown=0,any=false;
+    cards.forEach(function(c){var off=c.dataset.l!==lvl;c.classList.toggle('lvl-hide',off);if(!off){any=true;if(!c.classList.contains('hide'))shown++;}});
+    var none=lvl==='pg'&&!any;
+    if(soon)soon.style.display=none?'block':'none';
+    if(empty)empty.style.display=shown||none?'none':'block';
+    if(phases)phases.style.display=lvl==='pg'?'none':'';
+  }
+  tabs.forEach(function(t){t.addEventListener('click',function(){
+    lvl=t.dataset.lvl;
+    tabs.forEach(function(b){var on=b===t;b.classList.toggle('active',on);b.setAttribute('aria-selected',on);});
+    if(lvl==='pg'){var all=document.querySelector('.chip[data-f="all"]');if(all)all.click();}
+    fix();
+  });});
+  var q=document.getElementById('cSearch');if(q)q.addEventListener('input',fix);
+  document.querySelectorAll('.chip[data-f]').forEach(function(c){c.addEventListener('click',fix);});
+  fix();
+});
+</script>`;
+function courseCard(co, i18n, withLevel = false) {
   const media = co.flyerUrl
     ? `<img src="${esc(co.flyerUrl)}" alt="${esc(co.title_en)} course flyer" loading="lazy" decoding="async">`
     : `<div class="ph"><div><b>${esc(co.title_en)}</b><small${i18n.attr(UI.comingSoon[1])}>${UI.comingSoon[0]}</small></div></div>`;
   const phase = co.phase || {};
-  return `      <a class="course rv" data-f="${esc(phase.code)}" data-k="${esc((co.search_keywords || []).join(' ').toLowerCase())}" href="/courses/${esc(co.slug)}">`
-    + `<div class="c-img">${media}<span class="badge"${i18n.attr(phase.name_bn && inline(phase.name_bn))}>${inline(phase.name_en || '')}</span></div>`
+  const badge = co.phase ? [phase.name_en, phase.name_bn] : isPg(co) ? UI.levelPg : ['', ''];
+  return `      <a class="course rv" data-f="${esc(co.phase ? phase.code : 'pg')}"${withLevel ? ` data-l="${isPg(co) ? 'pg' : 'ug'}"` : ''} data-k="${esc((co.search_keywords || []).join(' ').toLowerCase())}" href="/courses/${esc(co.slug)}">`
+    + `<div class="c-img">${media}<span class="badge"${i18n.attr(badge[1] && inline(badge[1]))}>${inline(badge[0] || '')}</span></div>`
     + `<div class="c-body">${el(i18n, 'h3', '', co.title_en, co.title_bn)}${el(i18n, 'p', '', co.short_desc_en, co.short_desc_bn)}`
     + `<span class="c-link"><span${i18n.attr('কোর্সটা দেখো')}>View course</span> ${ARROW}</span></div></a>`;
 }
@@ -530,7 +574,7 @@ export function renderCourse(c, course, { origin, noindex }) {
     <div class="cp-grid">
       <div class="card cp-flyer rv">${media}</div>
       <div class="cp-info">
-        <span class="kicker rv"${i18n.attr(phase.name_bn ? '<i></i>' + inline(phase.name_bn) : '')}><i></i>${inline(phase.name_en || '')}</span>
+        <span class="kicker rv"${i18n.attr(course.phase ? (phase.name_bn ? '<i></i>' + inline(phase.name_bn) : '') : isPg(course) ? '<i></i>' + UI.levelPg[1] : '')}><i></i>${inline(course.phase ? phase.name_en || '' : isPg(course) ? UI.levelPg[0] : '')}</span>
         <h1 class="rv"><span${i18n.attr(course.title_bn && inline(course.title_bn))}>${inline(course.title_en)}</span>${course.status === 'upcoming' ? `<span class="cp-soon"${i18n.attr(UI.comingSoon[1])}>${UI.comingSoon[0]}</span>` : ''}</h1>
         ${course.short_desc_en ? el(i18n, 'p', 'lead rv', course.short_desc_en, course.short_desc_bn) : ''}
         <div class="hero-cta rv">
