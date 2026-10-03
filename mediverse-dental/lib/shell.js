@@ -3,6 +3,7 @@
 // (theme toggle, EN/BN switch, menu, filters, animations) stay exactly the same.
 import { readFileSync } from 'node:fs';
 import { esc } from './markup.js';
+import { themeParts } from './theme.js';
 
 const TEMPLATE = readFileSync(new URL('../src/template.html', import.meta.url), 'utf8');
 
@@ -40,20 +41,21 @@ for (const [from, to] of SCRIPT_PATCHES) {
 if (!script.includes('{{BN_JSON}}')) throw new Error('template.html script: {{BN_JSON}} placeholder missing');
 export const SCRIPT = script;
 
-export function documentHtml({ lang = 'en', meta, extraStyle = '', body, bn }) {
+export function documentHtml({ lang = 'en', meta, extraStyle = '', body, bn, settings }) {
   const json = JSON.stringify(bn).replace(/</g, '\\u003c');
+  const t = themeParts(settings);
   return `<!DOCTYPE html>
-<html lang="${esc(lang)}" data-theme="dark">
+<html lang="${esc(lang)}" data-theme="${t.theme}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 ${meta}
 ${FONT_LINKS}
 ${STYLE}
-${extraStyle}
+${extraStyle}${t.head ? `\n${t.head}` : ''}
 </head>
 <body>
-${body}
+${t.bodyStart}${body}
 ${SCRIPT.replace('{{BN_JSON}}', () => json)}
 </body>
 </html>

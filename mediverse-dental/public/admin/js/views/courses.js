@@ -1,7 +1,7 @@
 // Courses: list / search / add / edit / hide / archive / restore / (owner) delete.
 import { h, put, clear, field, text, area, select, toast, confirmDialog, errorText, busy, slugify, SLUG_RE } from '../ui.js';
 import { sb, q, publicUrl } from '../db.js';
-import { tracker, saveBar, formError, imageSlot, repeater } from '../forms.js';
+import { tracker, saveBar, formError, imageSlot, repeater, mdBar } from '../forms.js';
 
 const STATUS = [['active', 'Active — shown on website'], ['upcoming', 'Upcoming — shown as “Coming soon”'], ['hidden', 'Hidden — not on website']];
 
@@ -20,6 +20,9 @@ async function list({ root, setTitle }) {
     q(sb.from('media').select('id,path').like('path', 'flyers/%')),
   ]);
   const phaseName = new Map(phases.map((p) => [p.id, p.name_en]));
+  // Same order as the website: phase by phase, then display order.
+  const phaseIdx = new Map(phases.map((p, i) => [p.id, i]));
+  courses.sort((a, b) => (phaseIdx.get(a.phase_id) ?? 99) - (phaseIdx.get(b.phase_id) ?? 99) || a.sort_order - b.sort_order);
   const mediaPath = new Map(media.map((m) => [m.id, m.path]));
 
   const search = h('input', { type: 'search', placeholder: 'Search by name or slug…', 'aria-label': 'Search courses', id: 'courseSearch' });
@@ -59,8 +62,9 @@ async function list({ root, setTitle }) {
 
 // ------------------------------------------------------------------ edit
 async function edit({ root, setTitle, navigate, setDirtyCheck, role }, id) {
-  const [phases, mentors, rows, links] = await Promise.all([
+  const [phases, orders, mentors, rows, links] = await Promise.all([
     q(sb.from('phases').select('id,name_en').order('sort_order')),
+    q(sb.from('courses').select('phase_id,sort_order')),
     q(sb.from('mentors').select('id,name,slug,archived_at,status').order('sort_order')),
     id ? q(sb.from('courses').select('*').eq('id', id).limit(1)) : Promise.resolve([]),
     id ? q(sb.from('course_mentors').select('*').eq('course_id', id).order('sort_order')) : Promise.resolve([]),
@@ -99,6 +103,14 @@ async function edit({ root, setTitle, navigate, setDirtyCheck, role }, id) {
     seo_description_bn: area(c.seo_description_bn, { maxlength: 300, lang: 'bn' }),
   };
   for (const [k, el] of Object.entries(f)) el.id ||= k;
+  // New course: put it at the end of its phase (the website lists courses phase by phase).
+  const nextOrder = (phaseId) => Math.max(0, ...orders.filter((o) => o.phase_id === phaseId).map((o) => o.sort_order)) + 10;
+  if (!id) {
+    f.sort_order.value = nextOrder(f.phase_id.value);
+    let orderTouched = false;
+    f.sort_order.addEventListener('input', () => { orderTouched = true; });
+    f.phase_id.addEventListener('change', () => { if (!orderTouched) f.sort_order.value = nextOrder(f.phase_id.value); });
+  }
   let slugTouched = !!id;
   f.slug.addEventListener('input', () => { slugTouched = true; });
   f.title_en.addEventListener('input', () => { if (!slugTouched) f.slug.value = slugify(f.title_en.value); });
@@ -138,14 +150,14 @@ async function edit({ root, setTitle, navigate, setDirtyCheck, role }, id) {
       field('Web address (slug)', f.slug, 'Lowercase letters, numbers and dashes. Page: /courses/<slug>. Changing it breaks old links.')),
     h('fieldset', {}, h('legend', {}, 'Publishing'),
       h('div', { class: 'grid2' }, field('Phase', f.phase_id), field('Status', f.status)),
-      field('Display order', f.sort_order, 'Smaller numbers come first.')),
+      field('Display order inside the phase', f.sort_order, 'Courses are shown phase by phase; inside a phase, smaller numbers come first.')),
     h('fieldset', {}, h('legend', {}, 'Enrollment (Mediverse platform)'),
       field('Mediverse enrollment URL', f.external_url, 'Must start with https:// — the “Enroll” button opens this.'),
       h('div', { class: 'grid2' }, field('Button text (English)', f.cta_label_en), field('Button text (বাংলা)', f.cta_label_bn))),
     h('fieldset', {}, h('legend', {}, 'Flyer image'), flyerSlot.el),
     h('fieldset', {}, h('legend', {}, 'Description'),
-      h('div', { class: 'grid2' }, field('Short description (English)', f.short_desc_en, 'Shown on the course card.'), field('Short description (বাংলা)', f.short_desc_bn)),
-      h('div', { class: 'grid2' }, field('Course details (English)', f.details_en, 'Shown on the course page. Use a new line for a new paragraph, “- ” for a bullet, **bold**.'), field('Course details (বাংলা)', f.details_bn))),
+      h('div', { class: 'grid2' }, field('Short description (English)', mdBar(f.short_desc_en), 'Shown on the course card.'), field('Short description (বাংলা)', mdBar(f.short_desc_bn))),
+      h('div', { class: 'grid2' }, field('Course details (English)', mdBar(f.details_en, { bullets: true }), 'Shown on the course page. Select words and tap B for bold, Aa for gradient colour, • List for bullet points.'), field('Course details (বাংলা)', mdBar(f.details_bn, { bullets: true })))),
     h('fieldset', {}, h('legend', {}, 'Course info'),
       h('div', { class: 'grid2' }, field('Total classes', f.total_classes), h('div')),
       h('div', { class: 'grid2' }, field('Access period (English)', f.access_period_en, 'e.g. 6 months'), field('Access period (বাংলা)', f.access_period_bn)),

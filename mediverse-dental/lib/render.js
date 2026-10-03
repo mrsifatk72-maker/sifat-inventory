@@ -395,6 +395,7 @@ ${c.faqs.map((q, i) => `      <details${i === 0 ? ' open' : ''}><summary>${el(i1
 
   const title = s.seo_title_en || s.site_name;
   return documentHtml({
+    settings: s,
     meta: meta({ title, description: s.seo_description_en || '', url: origin + '/', image: s.ogImageUrl, noindex }),
     body: out.join('\n'),
     bn: { _title: s.seo_title_bn || title, _search: f(S.courses, 'search_placeholder').bn || f(S.courses, 'search_placeholder').en, ...i18n.dict },
@@ -553,6 +554,7 @@ ${course.mentors.map((m) => mentorCard(m, i18n)).join('\n')}
     provider: { '@type': 'Organization', name: s.site_name, sameAs: 'https://mediversebd.com' },
   };
   return documentHtml({
+    settings: s,
     meta: meta({
       title, description, url, image: course.flyerUrl || s.ogImageUrl, noindex,
       extra: `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`,
@@ -582,6 +584,7 @@ ${header(c, i18n, false)}
 </main>
 ${footer(c, i18n, false)}`;
   return documentHtml({
+    settings: s,
     meta: meta({ title: `${UI.notFound[0]} — ${s.site_name}`, description: '', url: `${origin}/`, noindex: true }),
     extraStyle: COURSE_STYLE,
     body,

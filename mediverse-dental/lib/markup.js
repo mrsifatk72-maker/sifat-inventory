@@ -47,13 +47,19 @@ export function inline(text) {
 // Multi-paragraph text (course details): blank line = new paragraph, "- " = list item.
 export function blocks(text) {
   const out = [];
+  const isItem = (l) => /^\s*[-•]\s+/.test(l);
   for (const chunk of String(text ?? '').trim().split(/\n\s*\n/)) {
     if (!chunk.trim()) continue;
-    const lines = chunk.split('\n');
-    if (lines.every((l) => /^\s*[-•]\s+/.test(l))) {
-      out.push('<ul>' + lines.map((l) => `<li>${inline(l.replace(/^\s*[-•]\s+/, ''))}</li>`).join('') + '</ul>');
-    } else {
-      out.push(`<p>${inline(chunk)}</p>`);
+    // A paragraph may mix normal lines and "- " bullet lines: each run becomes <p> or <ul>.
+    const runs = [];
+    for (const l of chunk.split('\n')) {
+      const kind = isItem(l) ? 'ul' : 'p';
+      if (runs.length && runs.at(-1).kind === kind) runs.at(-1).lines.push(l);
+      else runs.push({ kind, lines: [l] });
+    }
+    for (const r of runs) {
+      if (r.kind === 'ul') out.push('<ul>' + r.lines.map((l) => `<li>${inline(l.replace(/^\s*[-•]\s+/, ''))}</li>`).join('') + '</ul>');
+      else if (r.lines.join('').trim()) out.push(`<p>${inline(r.lines.join('\n'))}</p>`);
     }
   }
   return out.join('');

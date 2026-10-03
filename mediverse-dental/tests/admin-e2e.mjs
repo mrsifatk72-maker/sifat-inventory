@@ -215,6 +215,11 @@ await p.fill('#external_url', 'https://mediversebd.com/courses/admin-test-course
 await p.fill('#short_desc_en', 'A course created in the admin test.');
 await p.fill('#short_desc_bn', 'অ্যাডমিন টেস্টে বানানো কোর্স।');
 await p.fill('#details_en', 'First paragraph.\n- Point one\n- Point two');
+await p.evaluate(() => { const t = document.querySelector('#details_en'); t.focus(); t.setSelectionRange(0, 5); });
+await p.locator('#details_en').locator('xpath=..').locator('button[title^="Bold"]').click();
+check('format bar: B makes the selected words bold (**…**)', (await p.inputValue('#details_en')).startsWith('**First** paragraph.'));
+const p2Max = Number(stack.sql("select max(c.sort_order) from courses c join phases p on p.id=c.phase_id where p.code=2"));
+check('courses new: display order = end of its phase', Number(await p.inputValue('#sort_order')) === p2Max + 10, await p.inputValue('#sort_order'));
 await p.fill('#total_classes', '24');
 await p.click('button:has-text("+ Add feature")');
 await p.fill('.rep-item input >> nth=0', 'Live classes');
@@ -235,6 +240,14 @@ check('courses new: mentor shown on course page', pub.html.includes('Dr. M R Sif
 check('courses new: Bangla name present', pub.html.includes('অ্যাডমিন টেস্ট কোর্স'));
 check('courses new: feature + details rendered', pub.html.includes('Live classes') && pub.html.includes('Point two'));
 check('courses new: homepage now lists 23 courses', visibleCourses((await site('/')).html) === 23, String(visibleCourses((await site('/')).html)));
+{
+  const order = [...(await site('/')).html.matchAll(/class="course rv" data-f="(\d)"[^>]*href="\/courses\/([^"]+)"/g)].map((m) => [m[1], m[2]]);
+  const idx = order.findIndex((o) => o[1] === 'admin-test-course');
+  const phasesInOrder = order.map((o) => o[0]).join('');
+  check('courses order: phase by phase on the website (new course is not first)', idx > 0 && /^1+2+3+4+$/.test(phasesInOrder) && order[idx][0] === '2' && order[idx + 1]?.[0] !== '2', `${idx} ${phasesInOrder}`);
+  check('course page: bold in details rendered', (await site('/courses/admin-test-course')).html.includes('<b>First</b> paragraph.'));
+  check('course page: bullet list rendered', /<ul><li>Point one<\/li><li>Point two<\/li><\/ul>/.test((await site('/courses/admin-test-course')).html));
+}
 const dbInfo = stack.sql(`select info::text from courses where id='${newId}'`);
 check('courses new: info JSON stored in the existing format', JSON.parse(dbInfo).total_classes === 24 && JSON.parse(dbInfo).features[0].en === 'Live classes', dbInfo);
 
@@ -463,7 +476,9 @@ await p.click('#saveBtn');
 await p.waitForSelector('.form-error:not(.hidden)');
 check('settings: invalid WhatsApp number rejected', /country code/.test(await p.textContent('.form-error')));
 await p.fill('#whatsapp_number', '+8801700000000');
+await p.click('.tab[data-tab="seo"]');
 await p.fill('#seo_title_en', 'MediVerse Dental — Admin SEO Test');
+await p.click('.tab[data-tab="contact"]');
 await p.click('button:has-text("+ Add social / contact link")');
 const last = p.locator('#settingsForm .rep-item').last();
 await last.locator('select[aria-label="Platform"]').selectOption('instagram');
@@ -481,11 +496,15 @@ check('settings: new Instagram link + icon on website', homeHtml.includes('href=
 check('settings: SEO title on website', homeHtml.includes('<title>MediVerse Dental — Admin SEO Test</title>'));
 check('settings: social links stored without duplicates', stack.sql("select count(*) from social_links") === '5');
 // logo change
+await p.click('.tab[data-tab="look"]');
 await p.locator('#settingsForm fieldset:has(legend:text("Logos")) button:has-text("Change image")').first().click();
 await p.waitForSelector('.modal .tile');
 await p.click('.modal .tile[title="logos/logo-blue.png"]');
+await p.click('.tab[data-tab="contact"]');
 await p.fill('#whatsapp_number', '+8801726415926');
+await p.click('.tab[data-tab="seo"]');
 await p.fill('#seo_title_en', 'MediVerse Dental — Future Dentistry Begins Here');
+await p.click('.tab[data-tab="contact"]');
 await p.locator('#settingsForm .rep-item').last().locator('button:has-text("Remove")').click();
 await clearToasts(p);
 await p.click('#saveBtn');
@@ -495,6 +514,112 @@ homeHtml = (await site('/')).html;
 check('settings: dark-theme logo changed', /class="l-dark" src="[^"]*logos\/logo-blue\.png"/.test(homeHtml));
 check('settings: removed link gone, number + title restored', !homeHtml.includes('instagram.com') && homeHtml.includes('wa.me/8801726415926') && homeHtml.includes('<title>MediVerse Dental — Future Dentistry Begins Here</title>'));
 stack.sql("update site_settings set logo_dark_media_id = (select id from media where path='logos/logo-white.png')");
+
+// ------------------------------------------------------------------ theme, fonts, analytics
+await p.goto(base + '/admin/settings');
+await p.waitForSelector('#settingsForm');
+await p.click('.tab[data-tab="look"]');
+check('settings: tabs (only the chosen tab is shown)', await p.isVisible('#preset') && !(await p.isVisible('#whatsapp_number')));
+await p.selectOption('#preset', 'sunset');
+await p.selectOption('#font_en', 'Poppins');
+await p.selectOption('#font_bn', 'Noto Sans Bengali');
+await p.selectOption('#theme_default', 'light');
+await p.click('.tab[data-tab="analytics"]');
+await p.fill('#ga4_measurement_id', '<script>alert(1)</script>');
+await p.click('#saveBtn');
+await p.waitForSelector('.form-error:not(.hidden)');
+check('analytics: pasting code instead of an ID is rejected', /G-XXXXXXXXXX/.test(await p.textContent('.form-error')));
+await p.fill('#ga4_measurement_id', 'g-test12345');
+await p.fill('#gtm_container_id', 'GTM-N4JDQJNM');
+await clearToasts(p);
+await p.click('#saveBtn');
+check('theme: saved', /Settings saved/.test(await toastText(p)));
+homeHtml = (await site('/')).html;
+check('theme: website opens in light theme for new visitors', homeHtml.includes('<html lang="en" data-theme="light">'));
+check('theme: new colours on website', homeHtml.includes('--cyan:#FBBF24') && homeHtml.includes('--violet:#EC4899'));
+check('theme: fonts on website', homeHtml.includes('family=Poppins') && homeHtml.includes('family=Noto+Sans+Bengali') && homeHtml.includes("body{font-family:'Poppins'"));
+check('analytics: GA4 + GTM official tags added with the IDs', homeHtml.includes('gtag/js?id=G-TEST12345') && homeHtml.includes("'dataLayer','GTM-N4JDQJNM'") && homeHtml.includes('ns.html?id=GTM-N4JDQJNM'));
+check('theme: course pages use it too', (await site('/courses/decode-the-opg')).html.includes('--cyan:#FBBF24'));
+{
+  const pp = await ctx.newPage();
+  await pp.goto(base + '/');
+  check('theme: light theme + colour actually applied in the browser', await pp.evaluate(() => document.documentElement.dataset.theme === 'light' && getComputedStyle(document.documentElement).getPropertyValue('--cyan').trim().toUpperCase() === '#FBBF24'));
+  if (shots) await pp.screenshot({ path: `${shots}/theme-sunset-light.png` });
+  await pp.close();
+}
+await p.reload();
+await p.waitForSelector('#settingsForm');
+await p.click('.tab[data-tab="look"]');
+await p.selectOption('#preset', 'default');
+await p.selectOption('#font_en', 'Plus Jakarta Sans');
+await p.selectOption('#font_bn', 'Hind Siliguri');
+await p.selectOption('#theme_default', 'dark');
+await p.click('.tab[data-tab="analytics"]');
+await p.fill('#ga4_measurement_id', '');
+await p.fill('#gtm_container_id', '');
+await clearToasts(p);
+await p.click('#saveBtn');
+await toastText(p);
+homeHtml = (await site('/')).html;
+check('theme: back to original = no extra styles or tags', !homeHtml.includes('site-theme') && !homeHtml.includes('googletagmanager') && homeHtml.includes('data-theme="dark"'));
+check('theme: stored as empty (original design)', stack.sql("select coalesce(color_cyan,'')||coalesce(font_en,'')||coalesce(ga4_measurement_id,'')||theme_default from site_settings") === 'dark');
+if (shots) { await p.click('.tab[data-tab="look"]'); await p.screenshot({ path: `${shots}/settings-theme.png`, fullPage: true }); }
+
+// ------------------------------------------------------------------ homepage lists
+await p.goto(base + '/admin/homepage/hero');
+await p.waitForSelector('#sectionForm');
+check('hero: 4 numbers editable', (await p.$$('fieldset[data-table="stats"] .rep-item')).length === 4);
+await p.locator('fieldset[data-table="stats"] input[aria-label="Number"]').first().fill('5000');
+await p.click('fieldset[data-table="stats"] button:has-text("+ Add number")');
+const ns = p.locator('fieldset[data-table="stats"] .rep-item').last();
+await ns.locator('input[aria-label="Number"]').fill('30');
+await ns.locator('input[aria-label="After the number (e.g. +)"]').fill('+');
+await ns.locator('input[aria-label="Label (English)"]').fill('Live batches');
+await clearToasts(p);
+await p.click('#saveBtn');
+check('hero: numbers saved', /Section saved/.test(await toastText(p)));
+homeHtml = (await site('/')).html;
+check('hero: changed number + new number on website', homeHtml.includes('data-count="5000"') && homeHtml.includes('Live batches'));
+await p.waitForSelector('fieldset[data-table="stats"] .rep-item');
+await p.locator('fieldset[data-table="stats"] .rep-item').last().locator('button:has-text("Remove")').click();
+await p.locator('fieldset[data-table="stats"] input[aria-label="Number"]').first().fill('4700');
+await clearToasts(p);
+await p.click('#saveBtn');
+await toastText(p);
+homeHtml = (await site('/')).html;
+check('hero: number removed and restored', !homeHtml.includes('Live batches') && homeHtml.includes('data-count="4700"') && stack.sql('select count(*) from stats') === '4');
+
+await p.goto(base + '/admin/homepage/faq');
+await p.waitForSelector('fieldset[data-table="faqs"] .rep-item');
+check('faq: 5 questions editable', (await p.$$('fieldset[data-table="faqs"] .rep-item')).length === 5);
+await p.click('button:has-text("+ Add question")');
+const nq = p.locator('fieldset[data-table="faqs"] .rep-item').last();
+await nq.locator('input[aria-label="Question (English)"]').fill('Is there a refund policy?');
+await clearToasts(p);
+await p.click('#saveBtn');
+await p.waitForSelector('.toast');
+check('faq: answer is required', /cannot be empty/.test(await toastText(p)));
+await nq.locator('textarea[aria-label="Answer (English)"]').fill('Yes, within **7 days**.');
+await clearToasts(p);
+await p.click('#saveBtn');
+await toastText(p);
+homeHtml = (await site('/')).html;
+check('faq: new question with bold answer on website', homeHtml.includes('Is there a refund policy?') && homeHtml.includes('<b>7 days</b>'));
+await p.waitForSelector('fieldset[data-table="faqs"] .rep-item');
+await p.locator('fieldset[data-table="faqs"] .rep-item').last().locator('button:has-text("Remove")').click();
+await clearToasts(p);
+await p.click('#saveBtn');
+await toastText(p);
+check('faq: question removed', !(await site('/')).html.includes('refund policy') && stack.sql('select count(*) from faqs') === '5');
+
+await p.goto(base + '/admin/homepage/about');
+await p.waitForSelector('fieldset[data-table="phases"] .rep-item');
+check('about: 3 feature cards + 4 phases editable (phases cannot be removed)', (await p.$$('fieldset[data-table="features"] .rep-item')).length === 3 && (await p.$$('fieldset[data-table="phases"] .rep-item')).length === 4 && !(await p.$('fieldset[data-table="phases"] button:has-text("Remove")')));
+await p.goto(base + '/admin/homepage/stories');
+await p.waitForSelector('fieldset[data-table="testimonials"] .rep-item');
+check('stories: 3 testimonials editable', (await p.$$('fieldset[data-table="testimonials"] .rep-item')).length === 3);
+if (shots) await p.screenshot({ path: `${shots}/stories.png`, fullPage: true });
+
 if (shots) await p.screenshot({ path: `${shots}/settings.png`, fullPage: true });
 check('admin (owner session): no JavaScript or CSP errors', errors.length === 0, errors.join(' | '));
 await ctx.close();

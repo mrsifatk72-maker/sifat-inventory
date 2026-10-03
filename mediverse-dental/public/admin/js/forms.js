@@ -28,7 +28,7 @@ export function saveBar(t, onSave, extra = []) {
   btn.addEventListener('click', async (e) => {
     e.preventDefault();
     await busy(btn, async () => {
-      try { await onSave(); } catch (err) { console.error(err); toast(errorText(err), 'err'); }
+      try { await onSave(); } catch (err) { if (!err.userMessage) console.error(err); toast(errorText(err), 'err'); }
     });
     t.update();
   });
@@ -42,6 +42,9 @@ export function resizeToggle() {
   return c.el;
 }
 export const savedText = (o) => (o && o.to < o.from ? ` (${fmtBytes(o.from)} → ${fmtBytes(o.to)})` : '');
+
+// A message for the person filling the form (not a bug): shown, not logged.
+export const userError = (msg) => Object.assign(new Error(msg), { userMessage: true });
 
 export const formError = (box, msg) => { box.textContent = msg; box.classList.toggle('hidden', !msg); if (msg) box.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
 
@@ -111,7 +114,7 @@ export function imageSlot({ media, folder, round = false, title, allowRemove = t
 }
 
 // Repeatable list editor (features, links, buttons…).
-export function repeater({ items, make, addLabel, max = 30, onChange }) {
+export function repeater({ items, make, addLabel, max = 30, onChange, fixed = false }) {
   const list = h('div', { class: 'rep' });
   const rows = [];
   const notify = () => { list.dispatchEvent(new Event('input', { bubbles: true })); onChange?.(); };
@@ -120,7 +123,7 @@ export function repeater({ items, make, addLabel, max = 30, onChange }) {
     const up = h('button', { class: 'btn btn-sm', type: 'button', 'aria-label': 'Move up' }, '↑');
     const down = h('button', { class: 'btn btn-sm', type: 'button', 'aria-label': 'Move down' }, '↓');
     const del = h('button', { class: 'btn btn-sm btn-danger', type: 'button' }, 'Remove');
-    const wrap = h('div', { class: 'rep-item' }, h('div', { class: 'rep-tools' }, up, down, del), r.el);
+    const wrap = h('div', { class: 'rep-item' }, fixed ? null : h('div', { class: 'rep-tools' }, up, down, del), r.el);
     const entry = { wrap, read: r.read };
     up.addEventListener('click', () => { const i = rows.indexOf(entry); if (i > 0) { rows.splice(i, 1); rows.splice(i - 1, 0, entry); redraw(); notify(); } });
     down.addEventListener('click', () => { const i = rows.indexOf(entry); if (i < rows.length - 1) { rows.splice(i, 1); rows.splice(i + 1, 0, entry); redraw(); notify(); } });
@@ -132,5 +135,32 @@ export function repeater({ items, make, addLabel, max = 30, onChange }) {
   addBtn.addEventListener('click', () => { add(undefined); redraw(); notify(); rows.at(-1).wrap.querySelector('input,select,textarea')?.focus(); });
   for (const it of items || []) add(it);
   redraw();
-  return { el: h('div', {}, list, addBtn), read: () => rows.map((r) => r.read()) };
+  return { el: h('div', {}, list, fixed ? null : addBtn), read: () => rows.map((r) => r.read()) };
+}
+
+// Formatting buttons above a text box. They insert the site's safe markup:
+// **bold**, [[gradient highlight]] and "- " bullet lines (course details).
+export function mdBar(area, { bullets = false } = {}) {
+  const wrapSel = (before, after, placeholder) => {
+    const { selectionStart: a, selectionEnd: b, value } = area;
+    const sel = value.slice(a, b) || placeholder;
+    area.value = value.slice(0, a) + before + sel + after + value.slice(b);
+    area.focus();
+    area.setSelectionRange(a + before.length, a + before.length + sel.length);
+    area.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  const bullet = () => {
+    const { selectionStart: a, selectionEnd: b, value } = area;
+    const start = value.lastIndexOf('\n', a - 1) + 1;
+    const block = value.slice(start, b).split('\n').map((l) => (l.startsWith('- ') ? l : `- ${l}`)).join('\n');
+    area.value = value.slice(0, start) + block + value.slice(b);
+    area.focus();
+    area.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  const btn = (label, title, fn, cls = '') => h('button', { type: 'button', title, 'aria-label': title, class: cls, onclick: fn }, label);
+  const bar = h('div', { class: 'mdbar' },
+    btn('B', 'Bold (select text first)', () => wrapSel('**', '**', 'bold text')),
+    btn('Aa', 'Gradient highlight', () => wrapSel('[[', ']]', 'highlight'), 'grad'),
+    bullets ? btn('• List', 'Make bullet points', bullet) : null);
+  return h('div', { class: 'md-wrap' }, bar, area);
 }

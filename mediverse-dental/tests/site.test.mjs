@@ -177,3 +177,15 @@ test('repository-root vercel.json (deploy with Root Directory empty) matches thi
     assert.match(shim, new RegExp(`from '\\.\\./mediverse-dental/api/${f}\\.js'`));
   }
 });
+
+test('theme settings: only safe values reach the page; empty settings change nothing', async () => {
+  const { themeParts } = await import('../lib/theme.js');
+  assert.deepEqual(themeParts({}), { theme: 'dark', head: '', bodyStart: '' });
+  const bad = themeParts({ theme_default: 'x', color_cyan: 'red;}body{display:none', font_en: 'Comic Sans', ga4_measurement_id: "G-1');alert(1)//", gtm_container_id: '<x>' });
+  assert.deepEqual(bad, { theme: 'dark', head: '', bodyStart: '' });
+  const ok = themeParts({ theme_default: 'light', color_blue: '#112233', font_bn: 'Baloo Da 2', ga4_measurement_id: 'G-ABC1234' });
+  assert.equal(ok.theme, 'light');
+  assert.match(ok.head, /--blue:#112233/);
+  assert.match(ok.head, /family=Baloo\+Da\+2/);
+  assert.match(ok.head, /gtag\/js\?id=G-ABC1234/);
+});
