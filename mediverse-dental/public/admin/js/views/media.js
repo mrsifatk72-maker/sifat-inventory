@@ -2,6 +2,7 @@
 // preview, copy public URL, edit alt text, replace the file, delete when unused.
 import { h, put, clear, field, text, select, modal, toast, confirmDialog, errorText, busy, fmtBytes } from '../ui.js';
 import { sb, q, publicUrl, uploadMedia, replaceMedia, deleteMedia, mediaUsage, FOLDERS, checkFile } from '../db.js';
+import { resizeToggle, savedText } from '../forms.js';
 
 const USED_BY = {
   'courses.flyer': 'Course flyer', 'courses.thumbnail': 'Course thumbnail', 'mentors.photo': 'Mentor photo',
@@ -55,8 +56,8 @@ export async function render({ root, setTitle }) {
       const bad = checkFile(f);
       if (bad) { toast(`${f.name}: ${bad}`, 'err'); continue; }
       try {
-        const { media, duplicate } = await uploadMedia(f, upFolder.value, { alt_en: alt.value.trim() || null });
-        toast(duplicate ? `${f.name} is already in the library as ${media.path}.` : `Uploaded ${media.path}`, duplicate ? 'err' : 'ok');
+        const { media, duplicate, optimized } = await uploadMedia(f, upFolder.value, { alt_en: alt.value.trim() || null });
+        toast(duplicate ? `${f.name} is already in the library as ${media.path}.` : `Uploaded ${media.path}${savedText(optimized)}`, duplicate ? 'err' : 'ok');
       } catch (err) { toast(`${f.name}: ${errorText(err)}`, 'err'); }
     }
     file.value = ''; alt.value = '';
@@ -121,7 +122,8 @@ export async function render({ root, setTitle }) {
   put(root, 
     h('div', { class: 'page-head' }, h('h1', {}, 'Media library')),
     h('section', { class: 'panel' }, h('h2', {}, 'Upload images'),
-      h('p', { class: 'muted small' }, 'JPG, PNG, WebP or AVIF · max 5 MB each · stored in the public-media bucket.'),
+      h('p', { class: 'muted small' }, 'JPG, PNG, WebP or AVIF · max 5 MB each after resizing · stored in the public-media bucket.'),
+      resizeToggle(),
       h('div', { class: 'grid2' }, field('Folder', upFolder), field('Image file(s)', file)),
       field('Description (alt text, English)', alt), upBtn),
     h('div', { class: 'toolbar' }, search, folder), countEl, grid);

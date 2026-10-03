@@ -427,6 +427,75 @@ const paths = stack.sql('select path from media order by path').split('\n');
 let okUrls = 0;
 for (const pth of paths) if ((await fetch(`${base}/storage/v1/object/public/public-media/${pth}`)).status === 200) okUrls++;
 check('media: all 29 original image URLs still work', paths.length === 29 && okUrls === 29, `${okUrls}/${paths.length}`);
+
+// ------------------------------------------------------------------ image resizer
+await p.goto(base + '/admin/media');
+await p.waitForSelector('#mediaGrid .tile');
+check('resizer: switch is ON by default', await p.isChecked('.resize-toggle'));
+await p.selectOption('#uploadFolder', 'images');
+await p.setInputFiles('#uploadFile', { name: 'Big Photo.png', mimeType: 'image/png', buffer: png(3000, 2000, [30, 140, 220]) });
+await clearToasts(p);
+await p.click('#uploadBtn');
+const bigToast = await toastText(p);
+check('resizer: big image made smaller (toast shows before → after)', /Uploaded images\/big-photo\.webp \(.+ → .+\)/.test(bigToast), bigToast);
+const big = JSON.parse(stack.sql("select row_to_json(m)::text from media m where path='images/big-photo.webp'") || '{}');
+check('resizer: stored as WebP, 1600px wide', big.mime === 'image/webp' && big.width === 1600 && big.height === 1067, JSON.stringify(big));
+await p.uncheck('.resize-toggle');
+await p.reload();
+await p.waitForSelector('#mediaGrid .tile');
+check('resizer: OFF setting is remembered', !(await p.isChecked('.resize-toggle')));
+await p.selectOption('#uploadFolder', 'images');
+await p.setInputFiles('#uploadFile', { name: 'Original.png', mimeType: 'image/png', buffer: png(1800, 900, [220, 40, 90]) });
+await clearToasts(p);
+await p.click('#uploadBtn');
+await toastText(p);
+const orig = JSON.parse(stack.sql("select row_to_json(m)::text from media m where path='images/original.png'") || '{}');
+check('resizer: OFF keeps the original file', orig.mime === 'image/png' && orig.width === 1800);
+await p.check('.resize-toggle');
+stack.sql("delete from media where path in ('images/big-photo.webp','images/original.png')");
+
+// ------------------------------------------------------------------ settings
+await p.goto(base + '/admin/settings');
+await p.waitForSelector('#settingsForm');
+check('settings: page loads with WhatsApp number', (await p.inputValue('#whatsapp_number')) === '+8801726415926');
+await p.fill('#whatsapp_number', 'abc');
+await p.click('#saveBtn');
+await p.waitForSelector('.form-error:not(.hidden)');
+check('settings: invalid WhatsApp number rejected', /country code/.test(await p.textContent('.form-error')));
+await p.fill('#whatsapp_number', '+8801700000000');
+await p.fill('#seo_title_en', 'MediVerse Dental — Admin SEO Test');
+await p.click('button:has-text("+ Add social / contact link")');
+const last = p.locator('#settingsForm .rep-item').last();
+await last.locator('select[aria-label="Platform"]').selectOption('instagram');
+await last.locator('input[aria-label="Link"]').fill('https://instagram.com/mediversedental');
+await last.locator('input[aria-label="Name (English)"]').fill('Instagram');
+await clearToasts(p);
+await p.click('#saveBtn');
+check('settings: saved', /Settings saved/.test(await toastText(p)));
+await p.waitForTimeout(1200); // page reloads after new links
+await p.waitForSelector('#settingsForm');
+let homeHtml = (await site('/')).html;
+check('settings: WhatsApp links use the new number', homeHtml.includes('wa.me/8801700000000') && !homeHtml.includes('wa.me/8801726415926'));
+check('settings: course page WhatsApp uses the new number', (await site('/courses/decode-the-opg')).html.includes('wa.me/8801700000000'));
+check('settings: new Instagram link + icon on website', homeHtml.includes('href="https://instagram.com/mediversedental"') && homeHtml.includes('#E1306C'));
+check('settings: SEO title on website', homeHtml.includes('<title>MediVerse Dental — Admin SEO Test</title>'));
+check('settings: social links stored without duplicates', stack.sql("select count(*) from social_links") === '5');
+// logo change
+await p.locator('#settingsForm fieldset:has(legend:text("Logos")) button:has-text("Change image")').first().click();
+await p.waitForSelector('.modal .tile');
+await p.click('.modal .tile[title="logos/logo-blue.png"]');
+await p.fill('#whatsapp_number', '+8801726415926');
+await p.fill('#seo_title_en', 'MediVerse Dental — Future Dentistry Begins Here');
+await p.locator('#settingsForm .rep-item').last().locator('button:has-text("Remove")').click();
+await clearToasts(p);
+await p.click('#saveBtn');
+await toastText(p);
+await p.waitForTimeout(1200);
+homeHtml = (await site('/')).html;
+check('settings: dark-theme logo changed', /class="l-dark" src="[^"]*logos\/logo-blue\.png"/.test(homeHtml));
+check('settings: removed link gone, number + title restored', !homeHtml.includes('instagram.com') && homeHtml.includes('wa.me/8801726415926') && homeHtml.includes('<title>MediVerse Dental — Future Dentistry Begins Here</title>'));
+stack.sql("update site_settings set logo_dark_media_id = (select id from media where path='logos/logo-white.png')");
+if (shots) await p.screenshot({ path: `${shots}/settings.png`, fullPage: true });
 check('admin (owner session): no JavaScript or CSP errors', errors.length === 0, errors.join(' | '));
 await ctx.close();
 

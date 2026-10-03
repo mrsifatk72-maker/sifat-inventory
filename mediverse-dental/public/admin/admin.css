@@ -190,3 +190,6 @@ main.content{padding:18px 14px 110px;max-width:1100px;margin:0 auto}
 .drop .btn{margin-top:4px}
 .pimg.big{width:220px;max-width:100%}
 .btn svg{width:18px;height:18px;flex:none}
+.checks{display:flex;flex-wrap:wrap;gap:0 18px;margin-bottom:8px}
+.checks .check{min-height:40px;font-weight:500;font-size:.9rem}
+.resize-toggle{flex:none}

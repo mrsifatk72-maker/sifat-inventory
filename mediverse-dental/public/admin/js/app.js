@@ -9,6 +9,7 @@ const views = {
   mentors: () => import('./views/mentors.js'),
   homepage: () => import('./views/homepage.js'),
   media: () => import('./views/media.js'),
+  settings: () => import('./views/settings.js'),
 };
 const NAV = [
   ['/admin', 'dashboard', 'Dashboard'],
@@ -16,6 +17,7 @@ const NAV = [
   ['/admin/mentors', 'mentors', 'Mentors'],
   ['/admin/homepage', 'homepage', 'Homepage'],
   ['/admin/media', 'media', 'Media'],
+  ['/admin/settings', 'settings', 'Settings'],
 ];
 
 const state = { user: null, role: null, path: location.pathname, dirty: null, shell: null };

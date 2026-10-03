@@ -1,6 +1,6 @@
 // Shared form pieces: sticky save bar with unsaved-changes tracking, image picker.
-import { h, clear, modal, toast, busy, errorText, spinner, fmtBytes } from './ui.js';
-import { sb, q, publicUrl, uploadMedia, FOLDERS, checkFile } from './db.js';
+import { h, clear, modal, toast, busy, errorText, spinner, fmtBytes, checkbox } from './ui.js';
+import { sb, q, publicUrl, uploadMedia, FOLDERS, checkFile, resizeEnabled, setResizeEnabled, RESIZE_MAX } from './db.js';
 
 // Tracks whether a form differs from its last saved state.
 // `read()` returns a plain JSON-able object of the current form values.
@@ -35,6 +35,14 @@ export function saveBar(t, onSave, extra = []) {
   return h('div', { class: 'savebar' }, t.state, ...extra, btn);
 }
 
+// On/Off switch for the image resizer (remembered in this browser).
+export function resizeToggle() {
+  const c = checkbox(`Make images smaller before upload (max ${RESIZE_MAX}px, WebP) — saves space`, resizeEnabled(), { class: 'resize-toggle' });
+  c.input.addEventListener('change', () => { setResizeEnabled(c.input.checked); for (const x of document.querySelectorAll('.resize-toggle')) x.checked = c.input.checked; });
+  return c.el;
+}
+export const savedText = (o) => (o && o.to < o.from ? ` (${fmtBytes(o.from)} → ${fmtBytes(o.to)})` : '');
+
 export const formError = (box, msg) => { box.textContent = msg; box.classList.toggle('hidden', !msg); if (msg) box.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
 
 // --------------------------------------------------------------- image picker
@@ -52,16 +60,16 @@ export function pickImage({ folder, title = 'Choose image' }) {
       const bad = checkFile(f);
       if (bad) return toast(bad, 'err');
       try {
-        const { media, duplicate } = await uploadMedia(f, folder);
-        toast(duplicate ? `This image was already uploaded (${media.path}) — using it.` : 'Image uploaded.');
+        const { media, duplicate, optimized } = await uploadMedia(f, folder);
+        toast(duplicate ? `This image was already uploaded (${media.path}) — using it.` : `Image uploaded${savedText(optimized)}.`);
         finish(media);
       } catch (err) { toast(errorText(err), 'err'); }
     }));
     const label = (FOLDERS.find((x) => x[0] === folder) || [])[2] || folder;
     const m = modal([
       h('h2', {}, title),
-      h('p', {}, `Upload a new image (JPG, PNG, WebP or AVIF, max 5 MB) or pick one from “${label}”.`),
-      h('div', { class: 'drop' }, h('label', { class: 'field', for: 'pickFile' }, h('span', {}, 'New image'), file), up),
+      h('p', {}, `Upload a new image (JPG, PNG, WebP or AVIF) or pick one from “${label}”.`),
+      h('div', { class: 'drop' }, h('label', { class: 'field', for: 'pickFile' }, h('span', {}, 'New image'), file), resizeToggle(), up),
       h('h2', { class: 'pick-head' }, 'Already uploaded'),
       grid,
       h('div', { class: 'btns' }, h('button', { class: 'btn', type: 'button', onclick: () => finish(null) }, 'Cancel')),

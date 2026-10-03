@@ -56,10 +56,43 @@ export function imageSize(file) {
   });
 }
 
+// ------------------------------------------------------------ image resizer
+// When ON (default), images are shrunk in the browser before upload: at most
+// RESIZE_MAX px on the longest side, re-encoded (WebP for new uploads). The
+// original is kept if the result would not be smaller. Saved per browser.
+export const RESIZE_MAX = 1600;
+const BIG_INPUT = 25 * 1024 * 1024; // originals up to 25 MB are accepted when resizing
+export function resizeEnabled() {
+  try { return localStorage.getItem('mvd.resize') !== 'off'; } catch { return true; }
+}
+export function setResizeEnabled(on) {
+  try { localStorage.setItem('mvd.resize', on ? 'on' : 'off'); } catch { /* private mode: stays on */ }
+}
+
+// Resolves { file, from, to } — `file` is the (possibly) smaller image.
+export async function optimizeImage(file, { type = 'image/webp', max = RESIZE_MAX, quality = 0.82 } = {}) {
+  const same = { file, from: file.size, to: file.size };
+  if (!['image/webp', 'image/jpeg', 'image/png'].includes(type)) return same; // e.g. AVIF: browsers cannot encode it
+  let bmp;
+  try { bmp = await createImageBitmap(file); } catch { return same; }
+  const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const w = Math.max(1, Math.round(bmp.width * scale)), h = Math.max(1, Math.round(bmp.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (type === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); } // JPEG has no transparency
+  ctx.drawImage(bmp, 0, 0, w, h);
+  bmp.close?.();
+  const blob = await new Promise((r) => canvas.toBlob(r, type, quality));
+  if (!blob || blob.type !== type || blob.size >= file.size) return same;
+  const name = file.name.replace(/\.[^.]*$/, '') + '.' + EXT[type];
+  return { file: new File([blob], name, { type }), from: file.size, to: blob.size };
+}
+
 export function checkFile(file) {
   if (!file) return 'Choose an image first.';
   if (!ALLOWED_TYPES.includes(file.type)) return 'Only JPG, PNG, WebP or AVIF images can be uploaded.';
-  if (file.size > MAX_BYTES) return 'The image is larger than 5 MB. Please make it smaller and try again.';
+  if (file.size > (resizeEnabled() ? BIG_INPUT : MAX_BYTES)) return `The image is larger than ${resizeEnabled() ? 25 : 5} MB. Please make it smaller and try again.`;
   if (file.size === 0) return 'The file is empty.';
   return null;
 }
@@ -85,13 +118,16 @@ async function freePath(folder, fileName) {
 // Upload a new image into a folder and register it in the media table.
 // Resolves { media, duplicate } — duplicate=true when the same image already existed.
 export async function uploadMedia(file, folder, { alt_en = null, alt_bn = null } = {}) {
-  const bad = checkFile(file);
+  let bad = checkFile(file);
   if (bad) throw new Error(bad);
+  const optimized = resizeEnabled() ? await optimizeImage(file) : { file, from: file.size, to: file.size };
+  file = optimized.file;
+  if (file.size > MAX_BYTES) throw new Error('The image is still larger than 5 MB after resizing. Please use a smaller image.');
   const kind = kindForFolder(folder);
   if (!kind) throw new Error('Choose a folder.');
   const sha256 = await sha256Hex(file);
   const same = await q(sb.from('media').select('*').eq('sha256', sha256).limit(1));
-  if (same.length) return { media: same[0], duplicate: true };
+  if (same.length) return { media: same[0], duplicate: true, optimized };
   const { width, height } = await imageSize(file);
   const path = await freePath(folder, safeName(file.name, file.type));
   if (!PATH_RE.test(path)) throw new Error('This file name is not allowed. Rename the file (letters, numbers, - and _ only).');
@@ -105,7 +141,7 @@ export async function uploadMedia(file, folder, { alt_en = null, alt_bn = null }
     await sb.storage.from(BUCKET).remove([path]); // keep storage and table in step
     throw error;
   }
-  return { media: data, duplicate: false };
+  return { media: data, duplicate: false, optimized };
 }
 
 // Replace the image file behind an existing media item. Same path → every page that
@@ -113,6 +149,8 @@ export async function uploadMedia(file, folder, { alt_en = null, alt_bn = null }
 export async function replaceMedia(media, file) {
   const bad = checkFile(file);
   if (bad) throw new Error(bad);
+  if (file.type === media.mime && resizeEnabled()) file = (await optimizeImage(file, { type: media.mime })).file; // keep the same type (same address)
+  if (file.size > MAX_BYTES) throw new Error('The image is larger than 5 MB. Please use a smaller image.');
   if (file.type !== media.mime) throw new Error(`The new image must be the same type as the old one (${media.mime.replace('image/', '').toUpperCase()}).`);
   const sha256 = await sha256Hex(file);
   if (sha256 === media.sha256) throw new Error('This is the same image that is already there.');
