@@ -33,3 +33,14 @@ Environment variables (unchanged): `SUPABASE_URL`, `SUPABASE_ANON_KEY` (public k
 - `/courses/<slug>` → course page
 - `/admin` → admin login page
 - A Vercel "404: NOT_FOUND" page means Vercel is not building this folder: check the two settings above.
+
+## Updating the Vercel staging repo (mediversedental1-a11y/mediverse-dental-staging)
+The live staging project builds from that repo, not from sifat-inventory. In a
+Claude session that has push access to it:
+
+    git clone https://github.com/mediversedental1-a11y/mediverse-dental-staging
+    git clone -b ccr-0b6d8b68-4bii23 https://github.com/mrsifatk72-maker/sifat-inventory
+    sifat-inventory/mediverse-dental/scripts/sync-to-staging-repo.sh ./mediverse-dental-staging
+    cd mediverse-dental-staging && npm test && git add -A && git commit -m "Update staging" && git push
+
+Vercel redeploys automatically. Works with Root Directory empty or "mediverse-dental".
