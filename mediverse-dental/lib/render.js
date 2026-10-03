@@ -27,6 +27,10 @@ const UI = {
   comingSoon: ['Coming soon', 'শীঘ্রই আসছে'],
   classes: ['Classes', 'ক্লাস'],
   access: ['Access', 'অ্যাক্সেস'],
+  reviewsKicker: ['Student reviews', 'স্টুডেন্টদের রিভিউ'],
+  reviewsOne: ['review', 'টি রিভিউ'],
+  reviewsMany: ['reviews', 'টি রিভিউ'],
+  student: ['Student', 'স্টুডেন্ট'],
   notFound: ['Course not found', 'কোর্সটি পাওয়া যায়নি'],
   notFoundBody: ['This course is not available. Browse all courses instead.', 'এই কোর্সটি এখন নেই। সব কোর্স দেখে নাও।'],
 };
@@ -413,6 +417,41 @@ function courseCard(co, i18n) {
     + `<span class="c-link"><span${i18n.attr('কোর্সটা দেখো')}>View course</span> ${ARROW}</span></div></a>`;
 }
 
+// ------------------------------------------------------------- reviews ----
+export const RATING_LABELS = { 5: ['Very good', 'খুব ভালো'], 4: ['Good', 'ভালো'], 3: ['Average', 'মোটামুটি'], 2: ['Bad', 'খারাপ'], 1: ['Very bad', 'খুব খারাপ'] };
+const bnDigits = (x) => String(x).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+const starsHtml = (n) => `<span class="rv-stars" role="img" aria-label="${n} out of 5">${'★'.repeat(n)}<span class="off">${'★'.repeat(5 - n)}</span></span>`;
+
+function reviewsSection(reviews, i18n) {
+  const valid = reviews.filter((r) => r.rating >= 1 && r.rating <= 5 && (r.review_en || r.review_bn));
+  if (!valid.length) return '';
+  const avg = Math.round((valid.reduce((a, r) => a + r.rating, 0) / valid.length) * 10) / 10;
+  const word = valid.length === 1 ? UI.reviewsOne : UI.reviewsMany;
+  const summaryEn = `${avg.toFixed(1)} / 5 · ${valid.length} ${word[0]}`;
+  const summaryBn = `${bnDigits(avg.toFixed(1))} / ৫ · ${bnDigits(valid.length)}${word[1]}`;
+  const cards = valid.map((r) => {
+    const name = r.reviewer_name || '';
+    const av = (name || UI.student[0]).split(/\s+/).filter((w) => !/^dr\.?$/i.test(w)).slice(0, 2).map((w) => w[0] || '').join('').toUpperCase();
+    const label = RATING_LABELS[r.rating];
+    const textEn = r.review_en || r.review_bn, textBn = r.review_bn || r.review_en;
+    const who = name ? esc(name) : `<span${i18n.attr(UI.student[1])}>${UI.student[0]}</span>`;
+    const info = r.reviewer_info_en || r.reviewer_info_bn ? el(i18n, 'span', 'rv-info', r.reviewer_info_en || r.reviewer_info_bn, r.reviewer_info_bn && r.reviewer_info_en ? r.reviewer_info_bn : '') : '';
+    return `      <div class="card tcard rv"><div class="rv-top">${starsHtml(r.rating)}${el(i18n, 'span', 'rv-word', label[0], label[1])}</div>${el(i18n, 'blockquote', '', textEn, textBn !== textEn ? textBn : '')}<div class="who"><span class="av">${esc(av)}</span><span><b style="color:var(--ink)">${who}</b>${info ? `<br>${info}` : ''}</span></div></div>`;
+  }).join('\n');
+  return `<section class="sec" id="reviews" style="padding-top:40px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      ${kicker(i18n, ui('reviewsKicker'))}
+      <h2 class="rv-summary">${starsHtml(Math.round(avg))} <span${i18n.attr(summaryBn)}>${summaryEn}</span></h2>
+    </div>
+    <div class="t-grid">
+${cards}
+    </div>
+  </div>
+</section>
+`;
+}
+
 // ---------------------------------------------------------- course page ----
 // When the visitor switches to Bangla (the site's own script sets <html lang>),
 // WhatsApp links switch to the Bangla message, and back again for English.
@@ -450,6 +489,9 @@ const COURSE_STYLE = `<style>
 .cp-details ul,.cp-list{list-style:none;display:grid;gap:10px;margin:0 0 14px}
 .cp-details li,.cp-list li{padding-left:28px;position:relative;color:var(--muted)}
 .cp-details li::before,.cp-list li::before{content:"✓";position:absolute;left:0;color:var(--cyan);font-weight:800}
+.rv-stars{color:var(--amber);letter-spacing:2px}.rv-stars .off{opacity:.22}
+.rv-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.rv-word{font-size:.82rem;font-weight:700;color:var(--muted)}
+.rv-summary{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:clamp(1.3rem,3vw,1.8rem)!important}.rv-info{font-size:.82rem}
 .cp-soon{display:inline-block;margin-left:10px;padding:5px 11px;border-radius:999px;font-size:.75rem;font-weight:800;background:var(--grad-warm);color:#1a0d00;vertical-align:middle}
 @media (max-width:1024px){.cp-grid{grid-template-columns:1fr;gap:28px}.cp-flyer{position:static;max-width:520px}}
 @media (max-width:640px){.cp-info .hero-cta .btn{flex:1 1 100%}}
@@ -535,6 +577,8 @@ ${course.mentors.map((m) => mentorCard(m, i18n)).join('\n')}
 </section>
 `);
   }
+
+  if (course.reviews?.length) body.push(reviewsSection(course.reviews, i18n));
 
   body.push(contactSection(c, i18n, wa));
   body.push('</main>\n');

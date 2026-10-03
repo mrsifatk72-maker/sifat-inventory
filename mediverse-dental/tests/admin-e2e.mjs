@@ -621,6 +621,89 @@ check('stories: 3 testimonials editable', (await p.$$('fieldset[data-table="test
 if (shots) await p.screenshot({ path: `${shots}/stories.png`, fullPage: true });
 
 if (shots) await p.screenshot({ path: `${shots}/settings.png`, fullPage: true });
+
+// ------------------------------------------------------------------ reviews
+{
+  const opg = stack.sql("select id from courses where slug='decode-the-opg'");
+  await p.goto(base + '/admin/reviews');
+  await p.waitForSelector('#reviewList');
+  check('reviews: page opens (empty at first)', /No reviews yet/.test(await p.textContent('#reviewList')));
+  await p.click('a:has-text("+ Add review")');
+  await p.waitForSelector('#reviewForm');
+  check('reviews: every course is in the course list', (await p.$$eval('#course_id option', (o) => o.length)) === 23);
+  await p.fill('#review_en', 'Something');
+  await p.click('#saveBtn');
+  await p.waitForSelector('.form-error:not(.hidden)');
+  check('reviews: course is required', /Choose the course/.test(await p.textContent('.form-error')));
+  await p.selectOption('#course_id', opg);
+  await p.selectOption('#rating', '4');
+  await p.fill('#review_en', 'Very clear OPG classes. Highly recommended.');
+  await p.evaluate(() => { const t = document.querySelector('#review_en'); t.focus(); t.setSelectionRange(24, 30); });
+  await p.locator('#review_en').locator('xpath=..').locator('button[title^="Bold"]').click();
+  check('reviews: name and college can be left empty', (await p.inputValue('#reviewer_name')) === '');
+  await clearToasts(p);
+  await p.click('#saveBtn');
+  check('reviews: added', /Review added/.test(await toastText(p)));
+  await p.waitForURL(/\/admin\/reviews\/[0-9a-f-]{36}$/);
+  const firstId = p.url().split('/').pop();
+
+  await p.goto(base + `/admin/reviews/new?course=${opg}`);
+  await p.waitForSelector('#reviewForm');
+  check('reviews: course pre-selected from course page link', (await p.inputValue('#course_id')) === opg);
+  await p.fill('#reviewer_name', 'Rafi Ahmed');
+  await p.fill('#reviewer_info_en', 'Dhaka Dental College');
+  await p.fill('#review_bn', 'খুব সুন্দর করে বোঝানো হয়েছে।');
+  await clearToasts(p);
+  await p.click('#saveBtn');
+  await toastText(p);
+  let opgPage = (await site('/courses/decode-the-opg')).html;
+  check('reviews: shown on the course page with average', opgPage.includes('id="reviews"') && opgPage.includes('4.5 / 5 · 2 reviews'));
+  check('reviews: bold, name, college, "Student" fallback, Bangla text', opgPage.includes('<b>Highly</b>') && opgPage.includes('Rafi Ahmed') && opgPage.includes('Dhaka Dental College') && opgPage.includes('>Student<') && opgPage.includes('খুব সুন্দর করে বোঝানো হয়েছে।'));
+  check('reviews: star labels (Good / Very good)', opgPage.includes('>Good<') && opgPage.includes('>Very good<'));
+  check('reviews: other courses unaffected', !(await site('/courses/sdm-full-course')).html.includes('id="reviews"'));
+  {
+    const pp = await ctx.newPage();
+    await pp.goto(base + '/courses/decode-the-opg');
+    if (await pp.evaluate(() => document.documentElement.lang) !== 'bn') await pp.click('#langBtn');
+    check('reviews: Bangla switch shows Bangla summary', (await pp.textContent('#reviews h2')).includes('৪.৫ / ৫ · ২টি রিভিউ'));
+    if (shots) { await pp.evaluate(() => document.querySelector('#reviews').scrollIntoView()); await pp.addStyleTag({ content: '.rv{opacity:1!important;transform:none!important}' }); await pp.screenshot({ path: `${shots}/course-reviews.png` }); }
+    await pp.close();
+  }
+  // hide, list, filter
+  await p.goto(base + `/admin/reviews/${firstId}`);
+  await p.waitForSelector('#reviewForm');
+  await p.uncheck('#is_visible');
+  await clearToasts(p);
+  await p.click('#saveBtn');
+  await toastText(p);
+  opgPage = (await site('/courses/decode-the-opg')).html;
+  check('reviews: hidden review not on website', !opgPage.includes('<b>Highly</b>') && opgPage.includes('5.0 / 5 · 1 review'));
+  await p.goto(base + `/admin/reviews?course=${opg}`);
+  await p.waitForSelector('#reviewList .row');
+  check('reviews: list filtered by course shows both', (await p.$$('#reviewList .row')).length === 2 && /average 4.5/.test(await p.textContent('.muted.small')));
+  // future courses appear automatically
+  stack.sql(`insert into courses (slug, title_en, phase_id, status) select 'future-course-x', 'Future Course X', id, 'active' from phases where code=4`);
+  await p.goto(base + '/admin/reviews/new');
+  await p.waitForSelector('#reviewForm');
+  check('reviews: newly added courses appear in the list', (await p.$$eval('#course_id option', (o) => o.map((x) => x.textContent))).some((t) => t.startsWith('Future Course X')));
+  stack.sql("delete from courses where slug='future-course-x'");
+  // course page shortcut
+  await p.goto(base + `/admin/courses/${opg}`);
+  await p.waitForSelector('#courseReviews');
+  check('reviews: course edit page shows count + Manage reviews', /2 reviews for this course/.test(await p.textContent('#courseReviews')));
+  // delete
+  await p.goto(base + `/admin/reviews/${firstId}`);
+  await p.waitForSelector('#deleteBtn');
+  await p.click('#deleteBtn'); await p.click('.modal .btn-danger');
+  await p.waitForURL((u) => u.pathname === '/admin/reviews');
+  check('reviews: deleted', stack.sql(`select count(*) from course_reviews where id='${firstId}'`) === '0');
+  if (shots) { await p.waitForSelector('#reviewList'); await p.screenshot({ path: `${shots}/reviews-list.png` }); }
+  // a logged-in non-admin cannot add a review through the API
+  const visitorTok = stack.login(VISITOR.email).access_token;
+  const spam = await api('/rest/v1/course_reviews', { token: visitorTok, method: 'POST', body: { course_id: opg, rating: 1, review_en: 'spam' } });
+  check('authz non-admin: cannot add reviews', spam.status === 403, String(spam.status));
+  stack.sql('delete from course_reviews');
+}
 check('admin (owner session): no JavaScript or CSP errors', errors.length === 0, errors.join(' | '));
 await ctx.close();
 

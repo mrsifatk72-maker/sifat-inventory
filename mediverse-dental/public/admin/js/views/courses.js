@@ -228,6 +228,18 @@ async function edit({ root, setTitle, navigate, setDirtyCheck, role }, id) {
     else setTitle(savedRow.title_en);
   }
 
+  // Reviews are managed on the Reviews page; show a shortcut with the count.
+  let reviewsBox = null;
+  if (id) {
+    const count = await q(sb.from('course_reviews').select('*', { count: 'exact', head: true }).eq('course_id', id)).catch(() => null);
+    if (count !== null) {
+      reviewsBox = h('section', { class: 'panel', id: 'courseReviews' }, h('h2', {}, 'Student reviews'),
+        h('p', { class: 'muted small' }, `${count} review${count === 1 ? '' : 's'} for this course.`),
+        h('a', { class: 'btn btn-sm', href: `/admin/reviews?course=${id}`, 'data-link': '' }, 'Manage reviews'), ' ',
+        h('a', { class: 'btn btn-sm', href: `/admin/reviews/new?course=${id}`, 'data-link': '' }, '+ Add review'));
+    }
+  }
+
   // --- danger zone (existing courses only)
   const zone = id ? dangerZone({ c, role, navigate, t }) : null;
   const live = id && !c.archived_at && c.status !== 'hidden';
@@ -236,7 +248,7 @@ async function edit({ root, setTitle, navigate, setDirtyCheck, role }, id) {
     h('div', { class: 'page-head' }, h('h1', {}, id ? 'Edit course' : 'Add course'),
       live ? h('div', { class: 'actions' }, h('a', { class: 'btn btn-sm', href: `/courses/${c.slug}`, target: '_blank', rel: 'noopener' }, 'View on website ↗')) : null),
     c.archived_at ? h('div', { class: 'form-error' }, 'This course is archived (removed from the website). Restore it below to show it again.') : null,
-    form, zone, saveBar(t, save));
+    form, reviewsBox, zone, saveBar(t, save));
 }
 
 function dangerZone({ c, role, navigate, t }) {

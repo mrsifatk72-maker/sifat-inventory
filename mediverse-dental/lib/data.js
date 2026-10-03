@@ -46,7 +46,11 @@ async function getTable({ url, key }, table, fetchImpl) {
 const bySort = (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0);
 
 export async function loadContent(cfg = config(), fetchImpl = fetch) {
-  const lists = await Promise.all(TABLES.map((t) => getTable(cfg, t, fetchImpl)));
+  // course_reviews is optional: until its SQL has been run the site simply shows no reviews.
+  const [lists, reviews] = await Promise.all([
+    Promise.all(TABLES.map((t) => getTable(cfg, t, fetchImpl))),
+    getTable(cfg, 'course_reviews', fetchImpl).catch(() => []),
+  ]);
   const c = Object.fromEntries(TABLES.map((t, i) => [t, lists[i]]));
 
   for (const t of TABLES) c[t].sort(bySort);
@@ -71,6 +75,7 @@ export async function loadContent(cfg = config(), fetchImpl = fetch) {
       .sort(bySort)
       .map((cm) => mentorById.get(cm.mentor_id))
       .filter(Boolean),
+    reviews: reviews.filter((r) => r.course_id === course.id && r.is_visible !== false).sort(bySort),
   }));
 
   // Courses are listed phase by phase (1st, 2nd, 3rd, Final), then by their own order,

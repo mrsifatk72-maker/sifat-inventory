@@ -10,11 +10,13 @@ const views = {
   homepage: () => import('./views/homepage.js'),
   media: () => import('./views/media.js'),
   settings: () => import('./views/settings.js'),
+  reviews: () => import('./views/reviews.js'),
 };
 const NAV = [
   ['/admin', 'dashboard', 'Dashboard'],
   ['/admin/courses', 'courses', 'Courses'],
   ['/admin/mentors', 'mentors', 'Mentors'],
+  ['/admin/reviews', 'reviews', 'Reviews'],
   ['/admin/homepage', 'homepage', 'Homepage'],
   ['/admin/media', 'media', 'Media'],
   ['/admin/settings', 'settings', 'Settings'],
