@@ -1,5 +1,5 @@
 begin;
-select plan(12);
+select plan(13);
 
 select has_table('public', 'course_reviews', 'course_reviews exists');
 select ok((select relrowsecurity from pg_class where oid = 'public.course_reviews'::regclass), 'RLS is on');
@@ -15,6 +15,8 @@ select throws_ok($$insert into public.course_reviews (course_id, reviewer_name, 
                    select id, 'x', 0, 'y' from public.courses limit 1$$, '23514', null, 'rating below 1 rejected');
 select lives_ok($$insert into public.course_reviews (course_id, rating, review_bn, is_visible)
                   select id, 4, 'নাম ছাড়া রিভিউ', false from public.courses where slug = 'decode-the-opg'$$, 'name and college are optional');
+select lives_ok($$insert into public.course_reviews (course_id, reviewer_name, reviewer_info_en, reviewer_session, rating, review_en, is_visible)
+                  select id, 'Rafi', 'Dhaka Dental College', '2019-20', 5, 'Great', false from public.courses where slug = 'decode-the-opg'$$, 'session can be stored');
 select throws_ok($$insert into public.course_reviews (course_id, reviewer_name, rating)
                    select id, 'x', 3 from public.courses limit 1$$, '23514', null, 'review text required');
 

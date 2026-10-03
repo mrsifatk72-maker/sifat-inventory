@@ -652,13 +652,14 @@ if (shots) await p.screenshot({ path: `${shots}/settings.png`, fullPage: true })
   check('reviews: course pre-selected from course page link', (await p.inputValue('#course_id')) === opg);
   await p.fill('#reviewer_name', 'Rafi Ahmed');
   await p.fill('#reviewer_info_en', 'Dhaka Dental College');
+  await p.fill('#reviewer_session', '2019-20');
   await p.fill('#review_bn', 'খুব সুন্দর করে বোঝানো হয়েছে।');
   await clearToasts(p);
   await p.click('#saveBtn');
   await toastText(p);
   let opgPage = (await site('/courses/decode-the-opg')).html;
   check('reviews: shown on the course page with average', opgPage.includes('id="reviews"') && opgPage.includes('4.5 / 5 · 2 reviews'));
-  check('reviews: bold, name, college, "Student" fallback, Bangla text', opgPage.includes('<b>Highly</b>') && opgPage.includes('Rafi Ahmed') && opgPage.includes('Dhaka Dental College') && opgPage.includes('>Student<') && opgPage.includes('খুব সুন্দর করে বোঝানো হয়েছে।'));
+  check('reviews: bold, name, college, "Student" fallback, Bangla text', opgPage.includes('<b>Highly</b>') && opgPage.includes('Rafi Ahmed') && opgPage.includes('Dhaka Dental College · Session 2019-20') && opgPage.includes('সেশন ২০১৯-২০') && opgPage.includes('>Student<') && opgPage.includes('খুব সুন্দর করে বোঝানো হয়েছে।'));
   check('reviews: star labels (Good / Very good)', opgPage.includes('>Good<') && opgPage.includes('>Very good<'));
   check('reviews: other courses unaffected', !(await site('/courses/sdm-full-course')).html.includes('id="reviews"'));
   {
@@ -745,17 +746,22 @@ if (shots) await p.screenshot({ path: `${shots}/settings.png`, fullPage: true })
   check('level: postgraduate course without phase saved', /Course created/.test(await toastText(p)));
   await p.waitForURL(/\/admin\/courses\/[0-9a-f-]{36}$/);
   let home = (await site('/')).html;
-  check('level: switch OFF → no tabs, PG course listed with "Postgraduate" badge', !home.includes('data-lvl=') && /data-f="pg"[^>]*href="\/courses\/fcps-part-1-prep"[\s\S]*?<span class="badge"[^>]*>Postgraduate<\/span>/.test(home));
+  check('level: tabs shown by default, PG course has "Postgraduate" badge', home.includes('data-lvl="pg"') && /data-f="pg" data-l="pg"[^>]*href="\/courses\/fcps-part-1-prep"[\s\S]*?<span class="badge"[^>]*>Postgraduate<\/span>/.test(home));
   check('level: PG course page works', (await site('/courses/fcps-part-1-prep')).status === 200 && (await site('/courses/fcps-part-1-prep')).html.includes('<i></i>Postgraduate</span>'));
   await p.goto(base + '/admin/homepage/courses');
   await p.waitForSelector('#show_level_switch');
-  check('level: switch is OFF by default', !(await p.isChecked('#show_level_switch')));
+  check('level: switch is ON by default', await p.isChecked('#show_level_switch'));
+  await p.uncheck('#show_level_switch');
+  await clearToasts(p);
+  await p.click('#saveBtn');
+  await toastText(p);
+  check('level: switch OFF → no tabs, all courses together', !(await site('/')).html.includes('data-lvl=') && visibleCourses((await site('/')).html) === 23);
   await p.check('#show_level_switch');
   await clearToasts(p);
   await p.click('#saveBtn');
   await toastText(p);
   home = (await site('/')).html;
-  check('level: switch ON → Undergraduate / Postgraduate tabs on website', home.includes('data-lvl="ug"') && home.includes('data-lvl="pg"') && home.includes('data-l="pg"'));
+  check('level: switch ON again → Undergraduate / Postgraduate tabs on website', home.includes('data-lvl="ug"') && home.includes('data-lvl="pg"') && home.includes('data-l="pg"'));
   {
     const pp = await ctx.newPage();
     await pp.goto(base + '/');
@@ -782,13 +788,6 @@ if (shots) await p.screenshot({ path: `${shots}/settings.png`, fullPage: true })
     check('level: no PG courses → "coming soon" message', await pp.isVisible('#pgSoon'));
     await pp.close();
   }
-  await p.goto(base + '/admin/homepage/courses');
-  await p.waitForSelector('#show_level_switch');
-  await p.uncheck('#show_level_switch');
-  await clearToasts(p);
-  await p.click('#saveBtn');
-  await toastText(p);
-  check('level: switch OFF again → page as before', !(await site('/')).html.includes('data-lvl='));
 }
 check('admin (owner session): no JavaScript or CSP errors', errors.length === 0, errors.join(' | '));
 await ctx.close();

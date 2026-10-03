@@ -330,8 +330,8 @@ ${c.phases.map((p, i) => `      <div class="card phase rv" style="--w:${Math.rou
   if (S.courses) {
     const cs = S.courses;
     const more = (cs.content.buttons || [])[0];
-    // Optional Undergraduate / Postgraduate switch (Admin → Homepage → Courses). Off = page unchanged.
-    const levels = cs.content.show_level_switch === true;
+    // Undergraduate / Postgraduate switch: on unless turned off in Admin → Homepage → Courses.
+    const levels = cs.content.show_level_switch !== false;
     const levelTabs = levels ? `      <div class="chips lvl-tabs" role="tablist" aria-label="Course level">
         <button class="lvl active" data-lvl="ug" role="tab" aria-selected="true"${i18n.attr(UI.levelUg[1])}>${UI.levelUg[0]}</button>
         <button class="lvl" data-lvl="pg" role="tab" aria-selected="false"${i18n.attr(UI.levelPg[1])}>${UI.levelPg[0]}</button>
@@ -479,7 +479,12 @@ function reviewsSection(reviews, i18n) {
     const label = RATING_LABELS[r.rating];
     const textEn = r.review_en || r.review_bn, textBn = r.review_bn || r.review_en;
     const who = name ? esc(name) : `<span${i18n.attr(UI.student[1])}>${UI.student[0]}</span>`;
-    const info = r.reviewer_info_en || r.reviewer_info_bn ? el(i18n, 'span', 'rv-info', r.reviewer_info_en || r.reviewer_info_bn, r.reviewer_info_bn && r.reviewer_info_en ? r.reviewer_info_bn : '') : '';
+    // "College · Session 2019-20" (both optional; Bangla uses Bangla digits for the session).
+    const college = [r.reviewer_info_en || r.reviewer_info_bn, r.reviewer_info_bn || r.reviewer_info_en];
+    const sess = r.reviewer_session ? [`Session ${r.reviewer_session}`, `সেশন ${bnDigits(r.reviewer_session)}`] : null;
+    const infoEn = [college[0], sess?.[0]].filter(Boolean).join(' · ');
+    const infoBn = [college[1], sess?.[1]].filter(Boolean).join(' · ');
+    const info = infoEn ? el(i18n, 'span', 'rv-info', infoEn, infoBn !== infoEn ? infoBn : '') : '';
     return `      <div class="card tcard rv"><div class="rv-top">${starsHtml(r.rating)}${el(i18n, 'span', 'rv-word', label[0], label[1])}</div>${el(i18n, 'blockquote', '', textEn, textBn !== textEn ? textBn : '')}<div class="who"><span class="av">${esc(av)}</span><span><b style="color:var(--ink)">${who}</b>${info ? `<br>${info}` : ''}</span></div></div>`;
   }).join('\n');
   return `<section class="sec" id="reviews" style="padding-top:40px">

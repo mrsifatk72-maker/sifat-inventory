@@ -13,7 +13,10 @@ const ROOT = new URL('../', import.meta.url);
 const FIXTURE = JSON.parse(readFileSync(new URL('tests/fixtures/content.json', ROOT), 'utf8'));
 const FAKE_KEY = 'local-test-anon-key';
 
-export function startServer(port = 0) {
+// `mutate(data)` may change a copy of the fixture (e.g. turn a homepage option off).
+export function startServer(port = 0, { mutate } = {}) {
+  const data = structuredClone(FIXTURE);
+  mutate?.(data);
   let base = '';
   const env = { SUPABASE_ANON_KEY: FAKE_KEY };        // SUPABASE_URL set once the port is known
   const handler = makeHandler({ env });
@@ -23,7 +26,7 @@ export function startServer(port = 0) {
     const rest = /^\/rest\/v1\/([a-z_]+)$/.exec(url.pathname);
     if (rest) {
       if (req.headers.apikey !== FAKE_KEY) { res.statusCode = 401; return res.end('{}'); }
-      const rows = FIXTURE[rest[1]];
+      const rows = data[rest[1]];
       if (!rows) { res.statusCode = 404; return res.end('{}'); }
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify(rows));

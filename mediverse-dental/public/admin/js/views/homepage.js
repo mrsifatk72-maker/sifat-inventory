@@ -150,7 +150,7 @@ async function edit({ root, setTitle, setDirtyCheck, navigate }, key) {
   }) : null;
   const visible = checkbox('Show this section on the website', s.is_visible, { id: 'is_visible' });
   // Courses section: optional Undergraduate / Postgraduate switch on the website.
-  const levelSwitch = key === 'courses' ? checkbox('Show “Undergraduate (BDS) / Postgraduate” switch above the courses', content.show_level_switch === true, { id: 'show_level_switch' }) : null;
+  const levelSwitch = key === 'courses' ? checkbox('Show “Undergraduate (BDS) / Postgraduate” switch above the courses', content.show_level_switch !== false, { id: 'show_level_switch' }) : null;
   const lists = await Promise.all((LISTS[key] || []).map(async (cfg) => {
     const data = await q(sb.from(cfg.table).select('*').order('sort_order'));
     return { cfg, ids: data.map((x) => x.id), ed: listEditor(cfg, data) };
@@ -166,7 +166,7 @@ async function edit({ root, setTitle, setDirtyCheck, navigate }, key) {
   const err = h('div', { class: 'form-error hidden', role: 'alert' });
   const form = h('form', { novalidate: true, id: 'sectionForm' }, err,
     h('fieldset', {}, h('legend', {}, 'Visibility'), visible.el,
-      levelSwitch ? [levelSwitch.el, h('p', { class: 'muted small' }, 'Turn on when you have postgraduate courses. Off = all courses are shown together, as now. Set each course’s level on its edit page.')] : null),
+      levelSwitch ? [levelSwitch.el, h('p', { class: 'muted small' }, 'On: visitors choose Undergraduate (BDS) or Postgraduate; if there are no postgraduate courses yet, that tab says “coming soon”. Off: all courses are shown together. Set each course’s level on its edit page.')] : null),
     fields.length ? h('fieldset', {}, h('legend', {}, 'Text'),
       h('p', { class: 'muted small rep-label' }, 'Tips: select words and tap B for bold or Aa for gradient colour · press Enter for a new line.'), fields) : null,
     buttons ? h('fieldset', {}, h('legend', {}, 'Buttons'), buttons.el) : null,

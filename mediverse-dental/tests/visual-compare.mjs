@@ -18,7 +18,10 @@ const OLD = new URL('../index.html', import.meta.url).href;
 const outDir = process.argv[2] || fileURLToPath(new URL('../.visual', import.meta.url));
 mkdirSync(outDir, { recursive: true });
 
-const { server, base } = await startServer(0);
+// The original page has no Undergraduate/Postgraduate switch, so compare with it turned off.
+const { server, base } = await startServer(0, {
+  mutate: (d) => { const c = d.page_sections.find((x) => x.key === 'courses'); c.content = { ...c.content, show_level_switch: false }; },
+});
 const browser = await chromium.launch();
 const results = [];
 

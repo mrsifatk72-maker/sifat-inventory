@@ -59,7 +59,7 @@ async function list({ root, setTitle }) {
       box.append(h('a', { class: 'row', href: `/admin/reviews/${r.id}`, 'data-link': '' },
         h('div', { class: 'meta' },
           h('b', {}, h('span', { class: 'stars-txt' }, stars(r.rating)), ' ', r.reviewer_name || 'Student'),
-          h('small', {}, `${title.get(r.course_id) || 'Unknown course'}${r.reviewer_info_en || r.reviewer_info_bn ? ` · ${r.reviewer_info_en || r.reviewer_info_bn}` : ''}`),
+          h('small', {}, [title.get(r.course_id) || 'Unknown course', r.reviewer_info_en || r.reviewer_info_bn, r.reviewer_session && `Session ${r.reviewer_session}`].filter(Boolean).join(' · ')),
           h('small', {}, (r.review_en || r.review_bn || '').replace(/\*\*|\[\[|\]\]/g, '').slice(0, 90))),
         h('div', { class: 'side-info' }, h('span', { class: `badge ${r.is_visible ? 'visible' : 'hidden'}` }, r.is_visible ? 'visible' : 'hidden'))));
     }
@@ -91,6 +91,8 @@ async function edit({ root, setTitle, navigate, setDirtyCheck }, id) {
     return;
   }
   const { courses, phaseName } = await loadCourses();
+  // Session field exists once the latest SQL has run.
+  const hasSession = r ? 'reviewer_session' in r : await q(sb.from('course_reviews').select('reviewer_session').limit(1)).then(() => true, () => false);
   const pre = new URLSearchParams(location.search).get('course');
   r = r || { course_id: courses.some((c) => c.id === pre) ? pre : '', rating: 5, is_visible: true, sort_order: 0 };
   setTitle(id ? 'Edit review' : 'Add review');
@@ -104,6 +106,7 @@ async function edit({ root, setTitle, navigate, setDirtyCheck }, id) {
     reviewer_name: text(r.reviewer_name, { maxlength: 80, id: 'reviewer_name', placeholder: 'Optional' }),
     reviewer_info_en: text(r.reviewer_info_en, { maxlength: 120, id: 'reviewer_info_en', placeholder: 'Optional, e.g. Dhaka Dental College' }),
     reviewer_info_bn: text(r.reviewer_info_bn, { maxlength: 120, id: 'reviewer_info_bn', lang: 'bn', placeholder: 'ঐচ্ছিক' }),
+    ...(hasSession ? { reviewer_session: text(r.reviewer_session, { maxlength: 30, id: 'reviewer_session', placeholder: 'Optional, e.g. 2019-20', inputmode: 'numeric' }) } : {}),
     review_en: area(r.review_en, { maxlength: 2000, rows: 5, id: 'review_en' }),
     review_bn: area(r.review_bn, { maxlength: 2000, rows: 5, id: 'review_bn', lang: 'bn' }),
     sort_order: h('input', { type: 'number', step: 1, value: r.sort_order ?? 0, inputmode: 'numeric', id: 'sort_order' }),
@@ -116,12 +119,13 @@ async function edit({ root, setTitle, navigate, setDirtyCheck }, id) {
     h('fieldset', {}, h('legend', {}, 'Course & rating'),
       field('Course *', f.course_id, 'All courses are listed here, including new ones you add later.'),
       field('Rating *', f.rating)),
-    h('fieldset', {}, h('legend', {}, 'Student (optional)'),
-      field('Name', f.reviewer_name, 'Leave empty to show “Student”.'),
-      h('div', { class: 'grid2' }, field('College (English)', f.reviewer_info_en), field('College (বাংলা)', f.reviewer_info_bn))),
     h('fieldset', {}, h('legend', {}, 'Review'),
-      h('div', { class: 'grid2' }, field('Review (English)', mdBar(f.review_en)), field('Review (বাংলা)', mdBar(f.review_bn))),
+      h('div', { class: 'grid2' }, field('Review text (English)', mdBar(f.review_en)), field('Review text (বাংলা)', mdBar(f.review_bn))),
       h('p', { class: 'muted small' }, 'Write at least one language. If only one is filled, it is shown in both languages.')),
+    h('fieldset', {}, h('legend', {}, 'Student details (optional)'),
+      field('Student name', f.reviewer_name, 'Leave empty to show “Student”.'),
+      h('div', { class: 'grid2' }, field('Dental college (English)', f.reviewer_info_en, 'e.g. Dhaka Dental College'), field('Dental college (বাংলা)', f.reviewer_info_bn, 'যেমন: ঢাকা ডেন্টাল কলেজ')),
+      hasSession ? field('Session', f.reviewer_session, 'e.g. 2019-20 — shown as “Session 2019-20”.') : null),
     h('fieldset', {}, h('legend', {}, 'Publishing'), visible.el, field('Display order', f.sort_order, 'Smaller numbers come first on the course page.')));
   const t = tracker(form, read, setDirtyCheck);
 
@@ -138,6 +142,7 @@ async function edit({ root, setTitle, navigate, setDirtyCheck }, id) {
       course_id: v.course_id, rating: Number(v.rating), reviewer_name: n(v.reviewer_name),
       reviewer_info_en: n(v.reviewer_info_en), reviewer_info_bn: n(v.reviewer_info_bn),
       review_en: n(v.review_en), review_bn: n(v.review_bn), is_visible: v.is_visible, sort_order: Number(v.sort_order),
+      ...(hasSession ? { reviewer_session: n(v.reviewer_session) } : {}),
     };
     const saved = id
       ? await q(sb.from('course_reviews').update(row).eq('id', id).select().single())

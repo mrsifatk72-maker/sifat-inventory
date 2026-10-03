@@ -44,8 +44,13 @@ async function page(path, { mobile = false } = {}) {
   await p.click('#langBtn');
   check('language switch → English', (await p.textContent('h1')) === h1en);
 
-  const visible = () => p.evaluate(() => [...document.querySelectorAll('.course')].filter((c) => !c.classList.contains('hide')).length);
+  const visible = () => p.evaluate(() => [...document.querySelectorAll('.course')].filter((c) => getComputedStyle(c).display !== 'none').length);
   check('course listing shows 22', await visible() === 22);
+  check('Undergraduate / Postgraduate tabs shown (Undergraduate selected)', await p.isVisible('[data-lvl="ug"].active') && await p.isVisible('[data-lvl="pg"]'));
+  await p.click('[data-lvl="pg"]');
+  check('Postgraduate tab: no PG courses yet → "coming soon"', await visible() === 0 && await p.isVisible('#pgSoon'));
+  await p.click('[data-lvl="ug"]');
+  check('back to Undergraduate: 22 courses', await visible() === 22);
   await p.click('.chip[data-f="3"]');
   check('phase filter (3rd Phase) shows 4', await visible() === 4, String(await visible()));
   await p.click('.chip[data-f="all"]');
