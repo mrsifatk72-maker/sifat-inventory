@@ -153,3 +153,15 @@ test('every course page pre-fills WhatsApp with its own course name (EN + BN)', 
   assert.ok(!home.includes('data-wa-bn'), 'homepage WhatsApp links unchanged');
   assert.ok(home.includes('?text=Hello%20MediVerse%20Dental%2C%20I%20would%20like%20to%20know%20more%20about%20your%20BDS%20courses.'), 'homepage keeps the general message');
 });
+
+test('admin-config gives the browser only the URL + public key, refuses secret keys', async () => {
+  const { makeAdminConfigHandler } = await import('../api/admin-config.js');
+  const call = (env) => { const res = { headers: {}, setHeader(k, v) { this.headers[k] = v; }, end(b) { this.body = b; } }; makeAdminConfigHandler(env)({}, res); return res; };
+  const ok = call({ SUPABASE_URL: 'https://x.supabase.co', SUPABASE_ANON_KEY: 'sb_publishable_abc' });
+  assert.equal(ok.statusCode, 200);
+  assert.deepEqual(JSON.parse(ok.body), { supabaseUrl: 'https://x.supabase.co', supabaseKey: 'sb_publishable_abc' });
+  assert.equal(ok.headers['Cache-Control'], 'no-store');
+  const bad = call({ SUPABASE_URL: 'https://x.supabase.co', SUPABASE_ANON_KEY: 'sb_secret_abc' });
+  assert.equal(bad.statusCode, 503);
+  assert.ok(!bad.body.includes('sb_secret_abc'));
+});
