@@ -31,6 +31,7 @@ export async function render({ root, setTitle, user }) {
         h('a', { class: 'btn btn-primary', href: '/admin/courses/new', 'data-link': '' }, '+ Add course'),
         h('a', { class: 'btn', href: '/admin/mentors/new', 'data-link': '' }, '+ Add mentor'),
         h('a', { class: 'btn', href: '/admin/reviews/new', 'data-link': '' }, '+ Add review'),
+        h('a', { class: 'btn', href: '/admin/articles/new', 'data-link': '' }, '+ Write article'),
         h('a', { class: 'btn', href: '/admin/homepage', 'data-link': '' }, 'Edit homepage text'),
         h('a', { class: 'btn', href: '/admin/settings', 'data-link': '' }, 'Contact, social & SEO'),
         h('a', { class: 'btn', href: '/admin/media', 'data-link': '' }, 'Upload image'),

@@ -1,6 +1,7 @@
 // MediVerse Dental admin — app shell: login, admin check, layout, routing.
 import { h, clear, icon, toast, confirmDialog, errorText, spinner, busy } from './ui.js';
 import { initClient, sb, q } from './db.js';
+import { passwordInput, passwordProblem, PASSWORD_RULES } from './views/account.js';
 
 const app = document.getElementById('app');
 const views = {
@@ -11,18 +12,29 @@ const views = {
   media: () => import('./views/media.js'),
   settings: () => import('./views/settings.js'),
   reviews: () => import('./views/reviews.js'),
+  articles: () => import('./views/articles.js'),
+  team: () => import('./views/team.js'),
+  books: () => import('./views/books.js'),
+  navigation: () => import('./views/navigation.js'),
+  account: () => import('./views/account.js'),
 };
 const NAV = [
   ['/admin', 'dashboard', 'Dashboard'],
   ['/admin/courses', 'courses', 'Courses'],
   ['/admin/mentors', 'mentors', 'Mentors'],
   ['/admin/reviews', 'reviews', 'Reviews'],
+  ['/admin/articles', 'articles', 'Articles'],
+  ['/admin/team', 'team', 'Team'],
+  ['/admin/books', 'books', 'Books'],
   ['/admin/homepage', 'homepage', 'Homepage'],
+  ['/admin/navigation', 'navigation', 'Navigation'],
   ['/admin/media', 'media', 'Media'],
   ['/admin/settings', 'settings', 'Settings'],
+  ['/admin/account', 'account', 'Account security'],
 ];
 
 const state = { user: null, role: null, path: location.pathname, dirty: null, shell: null };
+let notice = ''; // one-time message for the login page (e.g. after a password reset)
 
 // ------------------------------------------------------------ unsaved changes
 // A view registers a function that says whether its form has unsaved edits.
@@ -91,6 +103,8 @@ async function loadAdmin() {
 async function route() {
   state.path = location.pathname;
   const path = location.pathname.replace(/\/+$/, '') || '/admin';
+  if (path === '/admin/reset') return renderReset();
+  if (path === '/admin/forgot') return renderForgot();
   const { data: { session } } = await sb.auth.getSession();
 
   if (!session) {
@@ -151,10 +165,15 @@ function renderLogin() {
   const password = h('input', { type: 'password', id: 'password', autocomplete: 'current-password', required: true });
   const err = h('div', { class: 'form-error hidden', role: 'alert' });
   const submit = h('button', { class: 'btn btn-primary', type: 'submit' }, 'Log in');
+  const info = notice ? h('div', { class: 'form-ok', role: 'status' }, notice) : null;
+  notice = '';
+  const forgot = h('a', { href: '/admin/forgot', class: 'forgot', id: 'forgotLink' }, 'Forgot password?');
+  forgot.addEventListener('click', (e) => { e.preventDefault(); history.pushState({}, '', '/admin/forgot'); route(); });
   const form = h('form', { novalidate: true },
+    info,
     h('label', { class: 'field', for: 'email' }, h('span', {}, 'Email'), email),
     h('label', { class: 'field', for: 'password' }, h('span', {}, 'Password'), password),
-    err, submit);
+    err, submit, forgot);
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     err.classList.add('hidden');
@@ -181,6 +200,79 @@ function renderLogin() {
     h('p', { class: 'muted' }, 'For MediVerse Dental team members only.'),
     form)));
   email.focus();
+}
+
+const card = (...kids) => clear(app).append(h('div', { class: 'login' }, h('div', { class: 'login-card' }, h('img', { src: '/admin/logo-white.png', alt: 'MediVerse Dental' }), ...kids)));
+const backToLogin = () => { const a = h('a', { href: '/admin/login', class: 'forgot' }, '← Back to login'); a.addEventListener('click', (e) => { e.preventDefault(); history.pushState({}, '', '/admin/login'); route(); }); return a; };
+
+// "Forgot password?": Supabase emails a one-time reset link that opens /admin/reset.
+// The answer is the same whether or not the email has an account (nothing is revealed).
+let lastResetRequest = 0;
+function renderForgot() {
+  state.shell = null;
+  setTitle('Reset password');
+  const email = h('input', { type: 'email', id: 'resetEmail', autocomplete: 'username', inputmode: 'email', required: true });
+  const msg = h('div', { class: 'form-ok hidden', role: 'status', id: 'resetSent' });
+  const err = h('div', { class: 'form-error hidden', role: 'alert' });
+  const submit = h('button', { class: 'btn btn-primary', type: 'submit', id: 'sendResetBtn' }, 'Send reset link');
+  const form = h('form', { novalidate: true }, h('label', { class: 'field', for: 'resetEmail' }, h('span', {}, 'Admin email'), email), err, msg, submit, backToLogin());
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.classList.add('hidden');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value.trim())) { err.textContent = 'Enter your admin email address.'; err.classList.remove('hidden'); return; }
+    if (Date.now() - lastResetRequest < 60000) { err.textContent = 'Please wait a minute before asking for another link.'; err.classList.remove('hidden'); return; }
+    await busy(submit, async () => {
+      lastResetRequest = Date.now();
+      const { error } = await sb.auth.resetPasswordForEmail(email.value.trim(), { redirectTo: `${location.origin}/admin/reset` });
+      if (error && /fetch|network/i.test(error.message)) { err.textContent = errorText(error); err.classList.remove('hidden'); return; }
+      msg.textContent = 'If this email belongs to an admin account, a reset link has been sent. Check your inbox (and spam). The link works once and expires soon.';
+      msg.classList.remove('hidden');
+    });
+  });
+  card(h('h1', {}, 'Forgot password?'), h('p', { class: 'muted' }, 'Enter your admin email. We will send you a link to set a new password.'), form);
+  email.focus();
+}
+
+// Opened from the reset email. Supabase signs the person in with a one-time recovery session;
+// they choose a new password, then every session is signed out and they log in again.
+async function renderReset() {
+  state.shell = null;
+  setTitle('Set a new password');
+  const { data: { session } } = await sb.auth.getSession();
+  history.replaceState({}, '', '/admin/reset'); // remove the one-time tokens from the address bar
+  if (!session) {
+    const again = h('a', { href: '/admin/forgot', class: 'btn btn-primary' }, 'Request a new link');
+    again.addEventListener('click', (e) => { e.preventDefault(); history.pushState({}, '', '/admin/forgot'); route(); });
+    card(h('h1', {}, 'Link not valid'), h('p', { class: 'muted', id: 'resetInvalid' }, 'This password-reset link is invalid or has expired. Request a new one.'), again, h('p', {}, backToLogin()));
+    return;
+  }
+  const next = passwordInput('resetNew', 'new-password');
+  const again = passwordInput('resetConfirm', 'new-password');
+  const err = h('div', { class: 'form-error hidden', role: 'alert', id: 'resetError' });
+  const submit = h('button', { class: 'btn btn-primary', type: 'submit', id: 'setPasswordBtn' }, 'Save new password');
+  const form = h('form', { novalidate: true },
+    h('label', { class: 'field', for: 'resetNew' }, h('span', {}, 'New password'), next.el, h('small', { class: 'hint' }, PASSWORD_RULES)),
+    h('label', { class: 'field', for: 'resetConfirm' }, h('span', {}, 'Confirm new password'), again.el), err, submit);
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.classList.add('hidden');
+    const n = next.input.value;
+    const problem = passwordProblem(n, { email: session.user?.email || '' }) || (n !== again.input.value ? 'The two passwords do not match.' : null);
+    if (problem) { err.textContent = problem; err.classList.remove('hidden'); return; }
+    await busy(submit, async () => {
+      const { error } = await sb.auth.updateUser({ password: n });
+      if (error) {
+        err.textContent = /same.*password|different from the old/i.test(error.message) ? 'Choose a password you have not used before.' : 'The password could not be changed. Request a new link and try again.';
+        err.classList.remove('hidden');
+        return;
+      }
+      next.input.value = ''; again.input.value = '';
+      notice = 'Password updated. Log in with your new password.';
+      await sb.auth.signOut({ scope: 'global' }); // ends every session, including this one → login page
+    });
+  });
+  card(h('h1', {}, 'Set a new password'), h('p', { class: 'muted' }, `For ${session.user?.email || 'your account'}.`), form);
+  next.input.focus();
 }
 
 function renderDenied() {

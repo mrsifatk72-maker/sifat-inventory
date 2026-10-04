@@ -107,6 +107,7 @@ export async function startStack({ users = [] } = {}) {
   // --- keys & sessions ------------------------------------------------------------
   const anonKey = signJwt({ role: 'anon', iss: 'supabase', iat: 1700000000, exp: 4100000000 });
   const refresh = new Map();
+  const authLog = []; // what the fake Auth was asked to do (tests read it)
   const issue = (u) => {
     const now = Math.floor(Date.now() / 1000);
     const access = signJwt({ sub: u.id, email: u.email, role: 'authenticated', aud: 'authenticated', aal: 'aal1', iat: now, exp: now + 3600, session_id: crypto.randomUUID() });
@@ -183,9 +184,25 @@ export async function startStack({ users = [] } = {}) {
       if (p === '/auth/v1/user') {
         const c = claimsFrom(req);
         if (!c?.sub) return json(res, 401, { code: 401, error_code: 'bad_jwt', msg: 'invalid JWT' });
+        const u = [...userMap.values()].find((x) => x.id === c.sub);
+        if (req.method === 'PUT') { // update password (Supabase: PUT /auth/v1/user)
+          const b = JSON.parse((await readBody(req)).toString() || '{}');
+          if (b.password != null) {
+            if (b.password === u.password) return json(res, 422, { code: 422, error_code: 'same_password', msg: 'New password should be different from the old password.' });
+            if (String(b.password).length < 6) return json(res, 422, { code: 422, error_code: 'weak_password', msg: 'Password should be at least 6 characters.' });
+            u.password = b.password;
+            authLog.push({ type: 'password_changed', email: u.email });
+          }
+        }
         return json(res, 200, { id: c.sub, aud: 'authenticated', role: 'authenticated', email: c.email, app_metadata: {}, user_metadata: {} });
       }
-      if (p === '/auth/v1/logout') { res.writeHead(204); return res.end(); }
+      if (p === '/auth/v1/recover' && req.method === 'POST') { // reset email: recorded instead of sent
+        const b = JSON.parse((await readBody(req)).toString() || '{}');
+        const u = userMap.get(String(b.email || '').toLowerCase());
+        authLog.push({ type: 'recover', email: b.email, redirectTo: url.searchParams.get('redirect_to'), known: !!u });
+        return json(res, 200, {});
+      }
+      if (p === '/auth/v1/logout') { authLog.push({ type: 'logout', scope: url.searchParams.get('scope') || 'global' }); res.writeHead(204); return res.end(); }
       if (p === '/auth/v1/signup') return json(res, 422, { code: 422, error_code: 'signup_disabled', msg: 'Signups not allowed for this instance' });
 
       // ---------- Storage
@@ -256,6 +273,12 @@ export async function startStack({ users = [] } = {}) {
     base, anonKey, users: userMap,
     sql: (q) => psql(q).trim(),
     login: (email) => issue(userMap.get(email.toLowerCase())),
+    authLog,
+    // A password-reset link exactly like Supabase sends (implicit flow: tokens in the #fragment).
+    recoveryLink: (email, path = '/admin/reset') => {
+      const t = issue(userMap.get(email.toLowerCase()));
+      return `${base}${path}#access_token=${t.access_token}&expires_at=${t.expires_at}&expires_in=3600&refresh_token=${t.refresh_token}&token_type=bearer&type=recovery`;
+    },
     async stop() {
       server.close(); pgrst.kill();
       spawnSync(RUN.length ? RUN[0] : `${PGBIN}/pg_ctl`, [...(RUN.length ? [...RUN.slice(1), `${PGBIN}/pg_ctl`] : []), '-D', join(work, 'data'), '-m', 'immediate', 'stop']);

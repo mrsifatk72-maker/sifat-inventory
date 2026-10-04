@@ -11,12 +11,15 @@ export const FOLDERS = [
   ['banners', 'banner', 'Banners'],
   ['logos', 'logo', 'Logos'],
   ['images', 'image', 'Other images'],
+  ['articles', 'image', 'Article images'],
+  ['books', 'image', 'Book covers'],
+  ['team', 'image', 'Team photos'],
 ];
 export const kindForFolder = (folder) => (FOLDERS.find((f) => f[0] === folder) || [])[1];
 const EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/avif': 'avif' };
 export const ALLOWED_TYPES = Object.keys(EXT);
 export const MAX_BYTES = 5 * 1024 * 1024;
-export const PATH_RE = /^(flyers|thumbnails|mentors|banners|logos|images)\/[A-Za-z0-9][A-Za-z0-9._-]{0,150}\.(jpe?g|png|webp|avif)$/;
+export const PATH_RE = /^(flyers|thumbnails|mentors|banners|logos|images|articles|books|team)\/[A-Za-z0-9][A-Za-z0-9._-]{0,150}\.(jpe?g|png|webp|avif)$/;
 
 export let sb = null;
 
@@ -27,7 +30,8 @@ export async function initClient() {
   for (let i = 0; i < 50 && !window.supabase; i++) await new Promise((r) => setTimeout(r, 50));
   if (!window.supabase) throw new Error('Could not load the Supabase library.');
   sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+    // Only the password-reset page reads the one-time login from the link in the reset email.
+    auth: { persistSession: true, autoRefreshToken: true, flowType: 'implicit', detectSessionInUrl: location.pathname === '/admin/reset' },
   });
   return sb;
 }

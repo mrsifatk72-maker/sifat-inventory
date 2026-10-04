@@ -189,3 +189,21 @@ test('theme settings: only safe values reach the page; empty settings change not
   assert.match(ok.head, /family=Baloo\+Da\+2/);
   assert.match(ok.head, /gtag\/js\?id=G-ABC1234/);
 });
+
+test('admin preview uses exactly the website formatter (public/admin/js/markup.js = lib/markup.js)', () => {
+  const site = readFileSync(new URL('../lib/markup.js', import.meta.url), 'utf8');
+  const admin = readFileSync(new URL('../public/admin/js/markup.js', import.meta.url), 'utf8');
+  assert.equal(admin.split('\n').slice(2).join('\n'), site);
+});
+
+test('article formatter: headings, lists, images only from the media library, no HTML', async () => {
+  const { articleHtml } = await import('../lib/markup.js');
+  const html = articleHtml('## H\n- a\n1. b\n![x](articles/a.webp)\n![y](https://evil.example/y.png)\n<img src=x onerror=alert(1)>\n[bad](javascript:alert(1))', (p) => `https://cdn/${p}`);
+  assert.match(html, /<h2>H<\/h2>/);
+  assert.match(html, /<ul><li>a<\/li><\/ul>/);
+  assert.match(html, /<ol><li>b<\/li><\/ol>/);
+  assert.match(html, /<img src="https:\/\/cdn\/articles\/a.webp"/);
+  assert.ok(!html.includes('evil.example'));
+  assert.ok(!html.includes('<img src=x'));
+  assert.ok(!html.includes('href="javascript'));
+});

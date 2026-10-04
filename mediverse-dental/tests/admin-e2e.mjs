@@ -15,7 +15,8 @@ if (shots) mkdirSync(shots, { recursive: true });
 const OWNER = { email: 'owner@example.test', password: 'owner-pass-123456', role: 'owner' };
 const EDITOR = { email: 'editor@example.test', password: 'editor-pass-123456', role: 'editor' };
 const VISITOR = { email: 'visitor@example.test', password: 'visitor-pass-123456' };
-const stack = await startStack({ users: [OWNER, EDITOR, VISITOR] });
+const ADMIN2 = { email: 'admin2@example.test', password: 'admin2-pass-123456', role: 'editor' };
+const stack = await startStack({ users: [OWNER, EDITOR, VISITOR, ADMIN2] });
 const { base } = stack;
 const results = [];
 const check = (name, ok, info = '') => { results.push({ name, ok: !!ok, info }); if (!ok) console.log('FAIL', name, info); };
@@ -131,7 +132,7 @@ const save = async (p) => { await clearToasts(p); await p.click('#saveBtn'); ret
   await p.goto(base + '/admin');
   await p.waitForSelector('#stats');
   const stats = await p.$$eval('#stats .stat-card b', (b) => b.map((x) => x.textContent));
-  check('dashboard: cards show 22 courses, 10 mentors, 7 sections, 29 media', stats.join(',') === '22,10,7,29', stats.join(','));
+  check('dashboard: cards show 22 courses, 10 mentors, 9 sections (7 + Articles + Team), 29 media', stats.join(',') === '22,10,9,29', stats.join(','));
   if (shots) await p.screenshot({ path: `${shots}/dashboard-desktop.png`, fullPage: true });
   await p.reload();
   await p.waitForSelector('#stats');
@@ -334,7 +335,7 @@ check('mentors: 10 mentors after tests', stack.sql('select count(*) from mentors
 // ------------------------------------------------------------------ homepage
 await p.goto(base + '/admin/homepage');
 await p.waitForSelector('#sectionList .row');
-check('homepage: 7 sections listed', (await p.$$('#sectionList .row')).length === 7);
+check('homepage: 9 sections listed', (await p.$$('#sectionList .row')).length === 9);
 const heroBefore = JSON.parse(stack.sql("select content::text from page_sections where key='hero'"));
 await p.click('#sectionList .row:has-text("Hero")');
 await p.waitForSelector('#sectionForm');
@@ -824,6 +825,236 @@ await ctx.close();
   if (shots) await m.screenshot({ path: `${shots}/homepage-mobile.png`, fullPage: true });
   check('mobile/editor: no JavaScript or CSP errors', e2.length === 0, e2.join(' | '));
   await c2.close();
+}
+
+// ------------------------------------------------------------------ articles, team, books, navigation
+{
+  const { ctx: c3, p: a, errors: e3 } = await open('/admin/articles');
+  await login(a, OWNER);
+  await a.waitForSelector('#articleList');
+  check('articles: admin page opens (empty)', /No articles yet/.test(await a.textContent('#articleList')));
+  await a.click('a:has-text("+ Write article")');
+  await a.waitForSelector('#articleForm');
+  await a.fill('#title', 'Why We Forget');
+  check('articles: slug from title', (await a.inputValue('#slug')) === 'why-we-forget');
+  await a.fill('#category', 'Guidelines');
+  await a.fill('#author_name', 'Dr Murtoza Shahriar');
+  await a.fill('#excerpt', 'Short summary of the article.');
+  await a.fill('#body', 'Intro paragraph.');
+  await a.evaluate(() => { const t = document.querySelector('#body'); t.focus(); t.setSelectionRange(t.value.length, t.value.length); });
+  await a.click('.mdbar button[title="Heading"]');
+  await a.keyboard.type('Spaced repetition');
+  await a.evaluate(() => { const t = document.querySelector('#body'); t.value += '\n- Day 1\n- Day 3\n\n1. Read\n2. Recall\n\n> Revise regularly.\n<script>alert(1)</script>'; t.dispatchEvent(new Event('input', { bubbles: true })); });
+  await a.click('.mdbar button[title="Insert image"]');
+  await a.waitForSelector('#pickFile');
+  await a.setInputFiles('#pickFile', { name: 'brain-chart.png', mimeType: 'image/png', buffer: png(400, 200, [80, 160, 240]) });
+  await a.click('.modal .btn-primary:has-text("Upload")');
+  await a.waitForSelector('.modal', { state: 'detached' });
+  check('articles: image inserted as safe markup (from media library)', /!\[[^\]]*\]\(articles\/brain-chart\.webp\)/.test(await a.inputValue('#body')), await a.inputValue('#body'));
+  await a.click('#previewBtn');
+  check('articles: live preview (heading, list, numbered, quote, image; script shown as text)',
+    await a.evaluate(() => { const p = document.querySelector('#preview'); return !!(p.querySelector('h2') && p.querySelector('ul li') && p.querySelector('ol li') && p.querySelector('blockquote') && p.querySelector('figure img') && !p.querySelector('script') && p.textContent.includes('<script>')); }));
+  await a.click('#previewBtn');
+  await clearToasts(a);
+  await a.click('#saveBtn');
+  check('articles: draft saved', /Draft saved/.test(await toastText(a)));
+  await a.waitForURL(/\/admin\/articles\/[0-9a-f-]{36}$/);
+  check('articles: draft is NOT on the website', (await site('/articles/why-we-forget')).status === 404 && !(await site('/articles')).html.includes('Why We Forget'));
+  check('articles: draft image stays private', (await api('/rest/v1/media?path=eq.articles/brain-chart.webp&select=id')).body.length === 0);
+  await clearToasts(a);
+  await a.click('#publishBtn');
+  check('articles: published', /Article published/.test(await toastText(a)));
+  let art = await site('/articles/why-we-forget');
+  check('articles: public page works', art.status === 200 && art.html.includes('<h1') && art.html.includes('Why We Forget') && art.html.includes('Dr Murtoza Shahriar'));
+  check('articles: content formatted (h2, list, numbered list, quote, image)', /<h2>Spaced repetition<\/h2>/.test(art.html) && art.html.includes('<li>Day 3</li>') && art.html.includes('<ol><li>Read</li>') && art.html.includes('<blockquote>Revise regularly.</blockquote>') && art.html.includes('public-media/articles/brain-chart.webp'));
+  check('articles: no HTML from the editor reaches the page', art.html.includes('&lt;script&gt;alert(1)&lt;/script&gt;') && !/<script>alert\(1\)<\/script>/.test(art.html));
+  check('articles: listed on /articles and on the homepage', (await site('/articles')).html.includes('href="/articles/why-we-forget"') && (await site('/')).html.includes('id="articles"'));
+  // view counter
+  {
+    const pp = await c3.newPage();
+    await pp.goto(base + '/articles/why-we-forget');
+    await pp.waitForTimeout(800);
+    await pp.reload(); await pp.waitForTimeout(500);
+    await pp.close();
+  }
+  check('articles: a visit is counted once per browser session', stack.sql("select view_count from articles where slug='why-we-forget'") === '1');
+  const bad = await fetch(`${base}/api/view`, { method: 'POST', body: "x'; drop table articles;--" });
+  const getView = await fetch(`${base}/api/view`);
+  check('articles: view API rejects bad input and GET', bad.status === 204 && getView.status === 405 && stack.sql("select count(*) from articles") === '1');
+  const direct = await api('/rest/v1/articles?slug=eq.why-we-forget', { method: 'PATCH', body: { view_count: 99999 } });
+  check('articles: visitors cannot edit view counts', direct.status === 401 || (Array.isArray(direct.body) && direct.body.length === 0));
+  // unpublish
+  await clearToasts(a);
+  await a.click('#unpublishBtn'); await a.click('.modal .btn-primary');
+  await toastText(a);
+  check('articles: unpublish hides it again', (await site('/articles/why-we-forget')).status === 404);
+  await a.click('#publishBtn'); await toastText(a);
+  if (shots) { await a.goto(base + '/admin/articles'); await a.waitForSelector('#articleList .row'); await a.screenshot({ path: `${shots}/articles-list.png` }); }
+
+  // team
+  await a.goto(base + '/admin/team/new');
+  await a.waitForSelector('#teamForm');
+  await a.fill('#name', 'Dr. M R Sifat');
+  await a.fill('#designation', 'CEO');
+  await a.fill('#college', 'Dhaka Dental College');
+  await a.click('button:has-text("Choose image")');
+  await a.waitForSelector('#pickFile');
+  await a.setInputFiles('#pickFile', { name: 'sifat.png', mimeType: 'image/png', buffer: png(300, 300, [200, 120, 90]) });
+  await a.click('.modal .btn-primary:has-text("Upload")');
+  await a.waitForSelector('.modal', { state: 'detached' });
+  await clearToasts(a); await a.click('#saveBtn');
+  check('team: member added', /Member added/.test(await toastText(a)));
+  await a.goto(base + '/admin/team/new'); await a.waitForSelector('#teamForm');
+  await a.fill('#name', 'Firoj Ahamed Fahim'); await a.fill('#designation', 'CM');
+  await clearToasts(a); await a.click('#saveBtn'); await toastText(a);
+  let team = (await site('/team')).html;
+  check('team: /team shows members with photo, designation, college + join section', team.includes('Dr. M R Sifat') && team.includes('>CEO<') && team.includes('Dhaka Dental College') && team.includes('public-media/team/sifat.webp') && team.includes('Want to Be Part of'));
+  check('team: WhatsApp join link with the prefilled message', team.includes('wa.me/8801726415926?text=Hello%20MediVerse%20Dental!%20I\'m%20interested%20in%20joining') || team.includes('wa.me/8801726415926?text=Hello%20MediVerse%20Dental!%20I&#39;m%20interested%20in%20joining'));
+  check('team: Apply via Email uses the official address + subject', team.includes('mailto:mediversedental1@gmail.com?subject=Application%20to%20Join%20MediVerse%20Dental%20Team&amp;body='));
+  check('team: homepage has the "Meet Our Central Executives" button', (await site('/')).html.includes('href="/team"'));
+  await a.goto(base + '/admin/team');
+  await a.waitForSelector('#teamList .order-btns');
+  await clearToasts(a);
+  await a.click('button[aria-label="Move Firoj Ahamed Fahim up"]');
+  await toastText(a);
+  team = (await site('/team')).html;
+  check('team: order changed with ↑', team.indexOf('Firoj Ahamed Fahim') < team.indexOf('Dr. M R Sifat'));
+
+  // books
+  await a.goto(base + '/admin/books/new');
+  await a.waitForSelector('#bookForm');
+  await a.fill('#title', 'SDM Made Easy');
+  await a.fill('#author', 'Firoj Ahamed Fahim');
+  await a.fill('#price', '৳ 450');
+  await a.fill('#link_url', 'http://insecure.example');
+  await a.click('#saveBtn');
+  await a.waitForSelector('.form-error:not(.hidden)');
+  check('books: link must be https', /https/.test(await a.textContent('.form-error')));
+  await a.fill('#link_url', 'https://mediversebd.com/books/sdm');
+  await a.fill('#link_label', 'Buy now');
+  await clearToasts(a); await a.click('#saveBtn');
+  check('books: added', /Book added/.test(await toastText(a)));
+  await a.goto(base + '/admin/books/new'); await a.waitForSelector('#bookForm');
+  await a.fill('#title', 'OPG Atlas'); await a.selectOption('#book_type', 'online');
+  await a.uncheck('#is_visible');
+  await clearToasts(a); await a.click('#saveBtn'); await toastText(a);
+  let books = (await site('/books')).html;
+  check('books: /books shows visible books with price + link, hides hidden ones', books.includes('SDM Made Easy') && books.includes('৳ 450') && books.includes('href="https://mediversebd.com/books/sdm"') && !books.includes('OPG Atlas'));
+  {
+    const pp = await c3.newPage();
+    stack.sql("update books set is_visible = true where title = 'OPG Atlas'");
+    await pp.goto(base + '/books');
+    const vis = () => pp.evaluate(() => [...document.querySelectorAll('.bk-card')].filter((x) => getComputedStyle(x).display !== 'none').map((x) => x.querySelector('h3').textContent));
+    await pp.click('.bk-tabs button[data-t="online"]');
+    const online = await vis();
+    await pp.click('.bk-tabs button[data-t="offline"]');
+    const offline = await vis();
+    check('books: Online / Offline tabs filter', online.join() === 'OPG Atlas' && offline.join() === 'SDM Made Easy', `${online} | ${offline}`);
+    await pp.close();
+  }
+
+  // navigation
+  await a.goto(base + '/admin/navigation');
+  await a.waitForSelector('#navForm');
+  const mobileLabels = await a.$$eval('fieldset[data-menu="mobile"] input[aria-label="Label (English)"]', (els) => els.map((e) => e.value));
+  check('navigation: mobile menu has Home, Courses, Mentors, Reviews, Articles, Central Executives, Books, Contact (+ Enroll)', mobileLabels.join('|').startsWith('Home|About MediVerse|Courses|Mentors|Reviews|Articles|Central Executives|Books|Contact') || ['Home', 'Courses', 'Mentors', 'Reviews', 'Articles', 'Central Executives', 'Books', 'Contact'].every((l) => mobileLabels.includes(l)), mobileLabels.join('|'));
+  const hdr = a.locator('fieldset[data-menu="header"] .rep-item').filter({ has: a.locator('input[aria-label="Label (English)"][value="Books"]') });
+  await a.locator('fieldset[data-menu="header"] input[aria-label="Label (English)"] >> nth=4').fill('Our Books');
+  await a.locator('fieldset[data-menu="header"] input[aria-label="Link"] >> nth=4').fill('javascript:alert(1)');
+  await clearToasts(a); await a.click('#saveBtn');
+  check('navigation: unsafe link rejected', /link must be/.test(await toastText(a)));
+  await a.locator('fieldset[data-menu="header"] input[aria-label="Link"] >> nth=4').fill('/books');
+  await clearToasts(a); await a.click('#saveBtn');
+  check('navigation: saved', /Menus saved/.test(await toastText(a)));
+  const homeNav = (await site('/')).html;
+  check('navigation: renamed item on the website', homeNav.includes('>Our Books</a>'));
+  check('navigation: current page highlighted on /books', (await site('/books')).html.includes('href="/books" class="active" aria-current="page"'));
+  check('admin (articles/team/books/nav): no JavaScript or CSP errors', e3.length === 0, e3.join(' | '));
+  await c3.close();
+}
+
+// ------------------------------------------------------------------ password change, forgot, reset
+{
+  const { ctx: c4, p: a, errors: e4 } = await open('/admin');
+  await login(a, ADMIN2);
+  await a.waitForSelector('#stats');
+  await a.goto(base + '/admin/account');
+  await a.waitForSelector('#passwordForm');
+  check('account: page shows email + three password fields with show/hide', (await a.textContent('main')).includes(ADMIN2.email) && (await a.$$('.pw-eye')).length === 3);
+  await a.fill('#newPassword', 'abc');
+  await a.click('.pw-eye >> nth=1');
+  check('account: show/hide reveals the password', (await a.getAttribute('#newPassword', 'type')) === 'text');
+  await a.fill('#currentPassword', 'wrong-current-pass');
+  await a.fill('#newPassword', 'new-strong-pass-2026');
+  await a.fill('#confirmPassword', 'new-strong-pass-2026');
+  await a.click('#changePwBtn');
+  await a.waitForSelector('#pwError:not(.hidden)');
+  check('account: wrong current password rejected', /not correct/.test(await a.textContent('#pwError')) && (await a.inputValue('#currentPassword')) === '');
+  await a.fill('#currentPassword', ADMIN2.password);
+  await a.fill('#confirmPassword', 'something-else-123');
+  await a.click('#changePwBtn');
+  await a.waitForSelector('#pwError:not(.hidden)');
+  check('account: confirmation must match', /do not match/.test(await a.textContent('#pwError')));
+  await a.fill('#newPassword', 'short1'); await a.fill('#confirmPassword', 'short1');
+  await a.click('#changePwBtn');
+  check('account: weak password rejected', /at least 10/.test(await a.textContent('#pwError')));
+  await a.fill('#newPassword', 'new-strong-pass-2026'); await a.fill('#confirmPassword', 'new-strong-pass-2026');
+  stack.authLog.length = 0;
+  await a.click('#changePwBtn');
+  await a.waitForSelector('#pwOk:not(.hidden)');
+  check('account: password changed, other devices signed out, fields cleared',
+    stack.authLog.some((x) => x.type === 'password_changed') && stack.authLog.some((x) => x.type === 'logout' && x.scope === 'others') && (await a.inputValue('#newPassword')) === '');
+  check('account: password never stored in browser storage', await a.evaluate(() => !JSON.stringify({ ...localStorage, ...sessionStorage }).includes('new-strong-pass-2026')));
+  await a.click('.who .btn'); await a.waitForSelector('#email');
+  await login(a, ADMIN2);
+  await a.waitForSelector('.form-error:not(.hidden)');
+  check('account: old password no longer works', /Wrong email or password/.test(await a.textContent('.form-error')));
+  await login(a, { email: ADMIN2.email, password: 'new-strong-pass-2026' });
+  await a.waitForSelector('#stats');
+  check('account: new password works', true);
+  await a.click('.who .btn'); await a.waitForSelector('#email');
+
+  // forgot password
+  await a.click('#forgotLink');
+  await a.waitForSelector('#resetEmail');
+  stack.authLog.length = 0;
+  await a.fill('#resetEmail', 'nobody@example.test');
+  await a.click('#sendResetBtn');
+  await a.waitForSelector('#resetSent:not(.hidden)');
+  const msgUnknown = await a.textContent('#resetSent');
+  await a.goto(base + '/admin/forgot'); await a.waitForSelector('#resetEmail');
+  await a.fill('#resetEmail', ADMIN2.email);
+  await a.click('#sendResetBtn');
+  await a.waitForSelector('#resetSent:not(.hidden)');
+  check('forgot: same message for known and unknown emails (nothing revealed)', msgUnknown === await a.textContent('#resetSent'));
+  const rec = stack.authLog.filter((x) => x.type === 'recover');
+  check('forgot: reset email requested with redirect to /admin/reset', rec.length === 2 && rec[1].redirectTo === `${base}/admin/reset`, JSON.stringify(rec));
+  await a.click('#sendResetBtn');
+  check('forgot: asking again immediately is slowed down', /wait a minute/.test(await a.textContent('.form-error')));
+
+  // reset page
+  await a.goto(base + '/admin/reset#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired');
+  await a.waitForSelector('#resetInvalid');
+  check('reset: expired/invalid link shows a clear message', true);
+  await a.goto('about:blank');
+  await a.goto(stack.recoveryLink(ADMIN2.email));
+  await a.waitForSelector('#resetNew');
+  check('reset: one-time tokens removed from the address bar', !a.url().includes('access_token') && new URL(a.url()).pathname === '/admin/reset');
+  await a.fill('#resetNew', 'reset-pass-2026-xyz'); await a.fill('#resetConfirm', 'different-2026-xyz');
+  await a.click('#setPasswordBtn');
+  check('reset: passwords must match', /do not match/.test(await a.textContent('#resetError')));
+  await a.fill('#resetConfirm', 'reset-pass-2026-xyz');
+  stack.authLog.length = 0;
+  await a.click('#setPasswordBtn');
+  await a.waitForSelector('#email');
+  check('reset: new password saved, all sessions signed out, back to login with a message',
+    stack.authLog.some((x) => x.type === 'password_changed') && stack.authLog.some((x) => x.type === 'logout' && x.scope === 'global') && /Password updated/.test(await a.textContent('.login-card')));
+  await login(a, { email: ADMIN2.email, password: 'reset-pass-2026-xyz' });
+  await a.waitForSelector('#stats');
+  check('reset: can log in with the new password', true);
+  if (shots) { await a.goto(base + '/admin/account'); await a.waitForSelector('#passwordForm'); await a.screenshot({ path: `${shots}/account.png`, fullPage: true }); }
+  check('account/reset: no JavaScript or CSP errors', e4.length === 0, e4.join(' | '));
+  await c4.close();
 }
 
 // ------------------------------------------------------------------ public site still fine

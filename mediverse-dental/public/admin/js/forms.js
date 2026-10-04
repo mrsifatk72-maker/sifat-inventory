@@ -164,3 +164,25 @@ export function mdBar(area, { bullets = false } = {}) {
     bullets ? btn('• List', 'Make bullet points', bullet) : null);
   return h('div', { class: 'md-wrap' }, bar, area);
 }
+
+// Move an item one place up/down in a sorted list and save the new order (sort_order = 10, 20, …).
+export async function moveInList(table, items, item, dir) {
+  const i = items.indexOf(item), j = i + dir;
+  if (i < 0 || j < 0 || j >= items.length) return false;
+  [items[i], items[j]] = [items[j], items[i]];
+  for (const [k, x] of items.entries()) {
+    const order = (k + 1) * 10;
+    if (x.sort_order !== order) {
+      await q(sb.from(table).update({ sort_order: order }).eq('id', x.id).select('id').single());
+      x.sort_order = order;
+    }
+  }
+  return true;
+}
+
+// ↑ ↓ buttons next to a list row (the row itself stays a normal link).
+export function orderButtons(label, isFirst, isLast, onMove) {
+  return h('div', { class: 'order-btns' },
+    h('button', { class: 'btn btn-sm', type: 'button', 'aria-label': `Move ${label} up`, disabled: isFirst, onclick: () => onMove(-1) }, '↑'),
+    h('button', { class: 'btn btn-sm', type: 'button', 'aria-label': `Move ${label} down`, disabled: isLast, onclick: () => onMove(1) }, '↓'));
+}
