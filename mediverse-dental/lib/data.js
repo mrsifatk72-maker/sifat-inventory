@@ -30,8 +30,8 @@ export function config(env = process.env) {
 
 const isJwt = (k) => /^eyJ[\w-]+\.[\w-]+\.[\w-]+$/.test(k);
 
-async function getTable({ url, key }, table, fetchImpl) {
-  const res = await fetchImpl(`${url}/rest/v1/${table}?select=*`, {
+async function getTable({ url, key }, table, fetchImpl, query = 'select=*') {
+  const res = await fetchImpl(`${url}/rest/v1/${table}?${query}`, {
     // New "publishable" keys (sb_publishable_…) go only in the apikey header;
     // legacy anon keys (JWTs) are also sent as a Bearer token. Both = anonymous role.
     headers: { apikey: key, ...(isJwt(key) ? { Authorization: `Bearer ${key}` } : {}), Accept: 'application/json' },
@@ -45,7 +45,20 @@ async function getTable({ url, key }, table, fetchImpl) {
 
 const bySort = (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0);
 
-export async function loadContent(cfg = config(), fetchImpl = fetch) {
+// Columns for article lists (the full body is only loaded on the article's own page).
+const ARTICLE_LIST = 'id,slug,title,excerpt,lang,category,author_name,cover_media_id,published_at,view_count,read_minutes';
+
+// extra: { articles: 'latest' | 'all', articleSlug, team: bool, books: bool }
+// These tables are optional: before their SQL has run, the pages simply show nothing.
+export async function loadContent(cfg = config(), fetchImpl = fetch, extra = {}) {
+  const optional = (table, query) => getTable(cfg, table, fetchImpl, query).catch(() => []);
+  const SLUGRE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  const [articles, article, team, books] = await Promise.all([
+    extra.articles ? optional('articles', `select=${ARTICLE_LIST}&order=published_at.desc${extra.articles === 'latest' ? '&limit=3' : '&limit=200'}`) : [],
+    extra.articleSlug && SLUGRE.test(extra.articleSlug) ? optional('articles', `select=*&slug=eq.${encodeURIComponent(extra.articleSlug)}&limit=1`) : [],
+    extra.team ? optional('team_members', 'select=*&order=sort_order.asc,name.asc') : [],
+    extra.books ? optional('books', 'select=*&order=sort_order.asc,title.asc') : [],
+  ]);
   // course_reviews is optional: until its SQL has been run the site simply shows no reviews.
   const [lists, reviews] = await Promise.all([
     Promise.all(TABLES.map((t) => getTable(cfg, t, fetchImpl))),
@@ -114,5 +127,11 @@ export async function loadContent(cfg = config(), fetchImpl = fetch) {
     nav: { header: c.nav_items.filter((n) => n.location === 'header'), mobile: c.nav_items.filter((n) => n.location === 'mobile') },
     footerSections,
     socials: c.social_links,
+    articles: articles.map((a) => ({ ...a, coverUrl: mediaUrl(a.cover_media_id) })),
+    article: article[0] ? { ...article[0], coverUrl: mediaUrl(article[0].cover_media_id) } : null,
+    team: team.map((t) => ({ ...t, photoUrl: mediaUrl(t.photo_media_id) })),
+    books: books.map((b) => ({ ...b, coverUrl: mediaUrl(b.cover_media_id) })),
+    // Inline article images are referenced by path (e.g. articles/brain.webp).
+    pathUrl: (path) => `${cfg.url}/storage/v1/object/public/public-media/${path.split('/').map(encodeURIComponent).join('/')}`,
   };
 }

@@ -23,6 +23,22 @@
       "destination": "/api/page?route=course&slug=:slug"
     },
     {
+      "source": "/articles",
+      "destination": "/api/page?route=articles"
+    },
+    {
+      "source": "/articles/:slug",
+      "destination": "/api/page?route=article&slug=:slug"
+    },
+    {
+      "source": "/team",
+      "destination": "/api/page?route=team"
+    },
+    {
+      "source": "/books",
+      "destination": "/api/page?route=books"
+    },
+    {
       "source": "/admin",
       "destination": "/admin/index.html"
     },

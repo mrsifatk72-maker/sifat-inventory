@@ -19,6 +19,7 @@ import { join, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { makeHandler } from '../../api/page.js';
 import { makeAdminConfigHandler } from '../../api/admin-config.js';
+import { makeViewHandler } from '../../api/view.js';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const PGBIN = process.env.PGBIN || '/usr/lib/postgresql/16/bin';
@@ -66,10 +67,12 @@ export async function startStack({ users = [] } = {}) {
   run(`${PGBIN}/pg_ctl`, ['-D', join(work, 'data'), '-o', `-p ${pgPort} -k ${work} -c listen_addresses=''`, '-l', join(work, 'pg.log'), '-w', 'start']);
   const psql = (sql, extra = []) => run('psql', ['-h', work, '-p', String(pgPort), '-U', 'postgres', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q', '-X', '-t', '-A', ...extra], { input: sql });
   psql(readFileSync(join(ROOT, 'scripts/local-db/supabase_shim.sql'), 'utf8'));
-  for (const f of spawnSync('ls', [join(ROOT, 'supabase/migrations')], { encoding: 'utf8' }).stdout.trim().split('\n')) {
-    psql(readFileSync(join(ROOT, 'supabase/migrations', f), 'utf8'));
-  }
+  // Same order as staging: original schema → seed data → later migrations.
+  const migrations = spawnSync('ls', [join(ROOT, 'supabase/migrations')], { encoding: 'utf8' }).stdout.trim().split('\n');
+  const original = (f) => f <= '20261002090400~';
+  for (const f of migrations.filter(original)) psql(readFileSync(join(ROOT, 'supabase/migrations', f), 'utf8'));
   psql(readFileSync(join(ROOT, 'supabase/seed.sql'), 'utf8'));
+  for (const f of migrations.filter((f) => !original(f))) psql(readFileSync(join(ROOT, 'supabase/migrations', f), 'utf8'));
   // PostgREST login role (as on Supabase) + storage rows for the 29 seeded images.
   psql(`create role authenticator login noinherit; grant anon, authenticated, service_role to authenticator;
         insert into storage.objects (bucket_id, name) select 'public-media', path from public.media;`);
@@ -131,6 +134,7 @@ export async function startStack({ users = [] } = {}) {
   const env = { SUPABASE_ANON_KEY: anonKey };
   const site = makeHandler({ env });
   const adminConfig = makeAdminConfigHandler(env);
+  const viewApi = makeViewHandler({ env });
   const vercel = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8'));
 
   function applyHeaders(res, path) {
@@ -226,7 +230,8 @@ export async function startStack({ users = [] } = {}) {
       // ---------- App
       applyHeaders(res, p);
       if (p === '/api/admin-config') return adminConfig(req, res);
-      if (p === '/' || /^\/courses\/[^/]+\/?$/.test(p)) return site(req, res);
+      if (p === '/api/view') return viewApi(req, res);
+      if (p === '/' || /^\/courses\/[^/]+\/?$/.test(p) || /^\/(articles|team|books)(\/[^/]+)?\/?$/.test(p)) return site(req, res);
       if (p === '/admin' || p.startsWith('/admin/')) {
         const rel = p.replace(/^\/admin\/?/, '');
         let file = join(ROOT, 'public/admin', rel);

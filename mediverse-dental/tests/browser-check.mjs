@@ -72,7 +72,8 @@ async function page(path, { mobile = false } = {}) {
   check('course page: flyer image loaded', await p.evaluate(() => { const i = document.querySelector('.cp-flyer img'); return i && i.complete && i.naturalWidth > 0; }));
   const cta = await p.$('.cp-info .btn-primary');
   check('course page: Enroll → Mediverse platform', (await cta.getAttribute('href')) === 'https://mediversebd.com/courses/essential-medicine-for-bds' && (await cta.getAttribute('target')) === '_blank');
-  check('course page: mentor shown', (await p.textContent('#mentors .mentor h3')) === 'Dr. M R Sifat');
+  check('course page: mentor shown (photo left, details right)', (await p.textContent('#mentors .cm h3')) === 'Dr. M R Sifat'
+    && await p.evaluate(() => { const ph = document.querySelector('.cm-photo').getBoundingClientRect(), info = document.querySelector('.cm-info').getBoundingClientRect(); return ph.right <= info.left; }));
   const waEn = await p.getAttribute('.cp-info .btn-ghost', 'href');
   check('course page: WhatsApp message names the course (EN)', decodeURIComponent(waEn).includes('your Essential Medicine for BDS Course.'), waEn);
   await p.click('#langBtn');

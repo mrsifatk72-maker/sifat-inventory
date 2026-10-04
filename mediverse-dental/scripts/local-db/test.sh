@@ -40,14 +40,25 @@ PSQL=("${RUN[@]}" psql -h "$WORK" -p "$PORT" -U postgres -d postgres -v ON_ERROR
 echo "▸ Loading Supabase compatibility shim (local only)"
 "${PSQL[@]}" < "$HERE/supabase_shim.sql" >/dev/null
 
-echo "▸ Applying migrations"
+# Same order as the real staging project: the original schema, then the seed data,
+# then every later migration (which may adjust seeded rows).
+SEED_AFTER="20261002090400"
+echo "▸ Applying migrations (original schema)"
 for f in "$SUPA"/migrations/*.sql; do
+  [[ "$(basename "$f")" > "${SEED_AFTER}~" ]] && continue
   echo "   - $(basename "$f")"
   "${PSQL[@]}" < "$f" >/dev/null
 done
 
 echo "▸ Loading seed"
 "${PSQL[@]}" < "$SUPA/seed.sql" >/dev/null
+
+echo "▸ Applying later migrations"
+for f in "$SUPA"/migrations/*.sql; do
+  [[ "$(basename "$f")" > "${SEED_AFTER}~" ]] || continue
+  echo "   - $(basename "$f")"
+  "${PSQL[@]}" < "$f" >/dev/null
+done
 
 echo "▸ Running pgTAP tests"
 "${PSQL[@]}" -c 'create extension if not exists pgtap' >/dev/null

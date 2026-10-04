@@ -20,7 +20,7 @@ select is((select count(*)::int from public.course_mentors), 7, '7 mentor assign
 select is((select count(*)::int from public.media), 29, '29 media files');
 select is((select count(*)::int from public.media where id not in (select media_id from public.media_usage)), 0,
           'no unused media after seeding');
-select is((select count(*)::int from public.page_sections), 7, '7 homepage sections');
+select is((select count(*)::int from public.page_sections where key in ('hero','about','courses','mentors','stories','faq','contact')), 7, '7 original homepage sections');
 select is((select count(*)::int from public.page_sections where content -> 'bn' = '{}'::jsonb), 0, 'every section has Bangla copy');
 select is((select content -> 'en' ->> 'heading' from public.page_sections where key = 'hero'),
           E'Future Dentistry\n[[Begins Here.]]', 'hero heading uses safe markup (no HTML)');
@@ -31,8 +31,8 @@ select is((select count(*)::int from public.features), 3, '3 feature cards');
 select is((select count(*)::int from public.faqs), 5, '5 FAQs');
 select is((select count(*)::int from public.faqs where answer_en ~ '<[a-z/]'), 0, 'no raw HTML in FAQ answers');
 select is((select count(*)::int from public.testimonials), 3, '3 testimonials');
-select is((select count(*)::int from public.nav_items where location = 'header'), 6, '6 header items (5 links + Enroll button)');
-select is((select count(*)::int from public.nav_items where location = 'mobile'), 7, '7 mobile menu items');
+select is((select count(*)::int from public.nav_items where location = 'header' and url not in ('/articles','/books','/team')), 6, '6 original header items (5 links + Enroll button)');
+select is((select count(*)::int from public.nav_items where location = 'mobile' and url not in ('/articles','/books','/team')), 7, '7 original mobile menu items');
 select is((select count(*)::int from public.footer_sections), 4, '4 footer sections');
 select is((select count(*)::int from public.footer_links), 12, '12 footer links');
 select is((select count(*)::int from public.social_links), 4, '4 social links');

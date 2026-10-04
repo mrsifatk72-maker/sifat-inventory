@@ -1,7 +1,7 @@
 // Builds the homepage and course pages from database content.
 // Markup mirrors src/template.html + src/build.py exactly (same classes, same
 // structure) so the page looks identical to the current live site.
-import { esc, inline, blocks, safeUrl } from './markup.js';
+import { esc, inline, blocks, safeUrl, articleHtml } from './markup.js';
 import { SOCIAL_SVG, ARROW, HIJAB_SVG } from './icons.js';
 import { documentHtml } from './shell.js';
 
@@ -102,12 +102,14 @@ function initials(name) {
 }
 
 // -------------------------------------------------------------- shared ----
-function header(c, i18n, onHome, wa = null) {
+// `current` = path of the page being shown (e.g. "/articles"): that menu item is highlighted.
+const navCur = (n, current) => (current && n.url === current ? ' class="active" aria-current="page"' : '');
+function header(c, i18n, onHome, wa = null, current = '') {
   const s = c.settings;
   const logos = `<img class="l-dark" src="${esc(s.logoDarkUrl)}" alt="${esc(s.site_name)}">
       <img class="l-light" src="${esc(s.logoLightUrl)}" alt="${esc(s.site_name)}">`;
   const links = c.nav.header.filter((n) => n.style === 'link')
-    .map((n) => `      <a href="${esc(linkHref(n.url, onHome))}"${n.open_new_tab ? ' target="_blank" rel="noopener"' : ''}${i18n.attr(n.label_bn && inline(n.label_bn))}>${inline(n.label_en)}</a>`).join('\n');
+    .map((n) => `      <a href="${esc(linkHref(n.url, onHome))}"${navCur(n, current)}${n.open_new_tab ? ' target="_blank" rel="noopener"' : ''}${i18n.attr(n.label_bn && inline(n.label_bn))}>${inline(n.label_en)}</a>`).join('\n');
   const cta = c.nav.header.filter((n) => n.style === 'button')
     .map((n) => `      <a class="btn btn-primary nav-cta" href="${esc(safeUrl(n.url))}"${ext(n)}${i18n.attr(n.label_bn && inline(n.label_bn))}>${inline(n.label_en)}</a>`).join('\n');
   return `<!-- ============ HEADER ============ -->
@@ -134,7 +136,7 @@ ${cta}
 <!-- ============ MOBILE MENU ============ -->
 <nav class="mnav" id="mnav" aria-label="Mobile" aria-hidden="true">
   <ol>
-${c.nav.mobile.filter((n) => n.style === 'link').map((n) => `    <li><a href="${esc(linkHref(n.url, onHome))}"${n.open_new_tab ? ' target="_blank" rel="noopener"' : ''}${i18n.attr(n.label_bn && inline(n.label_bn))}>${inline(n.label_en)}</a></li>`).join('\n')}
+${c.nav.mobile.filter((n) => n.style === 'link').map((n) => `    <li><a href="${esc(linkHref(n.url, onHome))}"${navCur(n, current)}${n.open_new_tab ? ' target="_blank" rel="noopener"' : ''}${i18n.attr(n.label_bn && inline(n.label_bn))}>${inline(n.label_en)}</a></li>`).join('\n')}
   </ol>
   <div class="m-foot">
     <p${i18n.attr(inline('আমাদের সাথে যুক্ত থাকো'))}>Follow ${esc(s.site_name)}</p>
@@ -180,15 +182,29 @@ ${columns}
 <a class="wa-float" ${waHref(wa, waUrl(s))} target="_blank" rel="noopener" aria-label="Chat with ${esc(s.site_name)} on WhatsApp">${WA_FLOAT_SVG}</a>`;
 }
 
+function mentorMedia(m, idSuffix = '') {
+  if (m.avatar_style === 'photo' && m.photoUrl) return `<img src="${esc(m.photoUrl)}" alt="${esc(m.name)}" loading="lazy" decoding="async">`;
+  if (m.avatar_style === 'hijab_icon') return `<div class="mono" role="img" aria-label="${esc(m.name)}">${HIJAB_SVG.replaceAll('{id}', 'hj' + initials(m.name).toLowerCase() + idSuffix)}</div>`;
+  return `<div class="mono" aria-hidden="true"><span>${esc(initials(m.name))}</span></div>`;
+}
+
+// Course page: photo on the left, details on the right (stacked on phones).
+function mentorRow(m, i18n) {
+  const meta = [m.institution, m.session && `Session ${m.session}`].filter(Boolean).join(' · ');
+  return `      <article class="card cm rv">
+        <div class="cm-photo">${mentorMedia(m, 'cm').replace(' loading="lazy"', '')}</div>
+        <div class="cm-info">
+          ${m.designation_en ? el(i18n, 'span', 'tag', m.designation_en, m.designation_bn) : ''}
+          <h3>${esc(m.name)}</h3>
+          ${m.credentials ? `<p class="cm-cred">${esc(m.credentials)}</p>` : ''}
+          ${m.bio_en || m.bio_bn ? el(i18n, 'p', 'cm-bio', m.bio_en || m.bio_bn, m.bio_en && m.bio_bn ? m.bio_bn : '') : ''}
+          ${meta ? `<p class="cm-meta">${esc(meta)}</p>` : ''}
+        </div>
+      </article>`;
+}
+
 function mentorCard(m, i18n) {
-  let media;
-  if (m.avatar_style === 'photo' && m.photoUrl) {
-    media = `<img src="${esc(m.photoUrl)}" alt="${esc(m.name)}" loading="lazy" decoding="async">`;
-  } else if (m.avatar_style === 'hijab_icon') {
-    media = `<div class="mono" role="img" aria-label="${esc(m.name)}">${HIJAB_SVG.replaceAll('{id}', 'hj' + initials(m.name).toLowerCase())}</div>`;
-  } else {
-    media = `<div class="mono" aria-hidden="true"><span>${esc(initials(m.name))}</span></div>`;
-  }
+  const media = mentorMedia(m);
   return `      <article class="mentor rv" tabindex="0">${media}`
     + `<button class="more" aria-label="Show credentials of ${esc(m.name)}" aria-expanded="false">i</button>`
     + `<div class="info">${el(i18n, 'span', 'tag', m.designation_en, m.designation_bn)}<h3>${esc(m.name)}</h3><p>${esc(m.credentials)}</p></div></article>`;
@@ -264,7 +280,10 @@ export function renderHome(c, { origin, noindex }) {
   out.push(header(c, i18n, true));
   out.push('\n<main id="top">');
 
-  if (S.hero) {
+  // Each homepage section renders itself; they appear in the order set in the admin (sort_order).
+  const blocks = {};
+
+  blocks.hero = () => {
     const h = S.hero;
     const [b1, ...rest] = h.content.buttons || [];
     out.push(`<!-- ============ HERO ============ -->
@@ -287,9 +306,9 @@ ${c.stats.map((st) => `        <div class="stat"><b data-count="${Number(st.valu
   </div>
 </section>
 `);
-  }
+  };
 
-  if (S.about) {
+  blocks.about = () => {
     const a = S.about;
     const hv = f(a, 'highlight_value');
     const hm = /^(\d+)(.*)$/.exec(hv.en || '') || [null, '0', ''];
@@ -325,9 +344,9 @@ ${c.phases.map((p, i) => `      <div class="card phase rv" style="--w:${Math.rou
   </div>
 </section>
 `);
-  }
+  };
 
-  if (S.courses) {
+  blocks.courses = () => {
     const cs = S.courses;
     const more = (cs.content.buttons || [])[0];
     // Undergraduate / Postgraduate switch: on unless turned off in Admin → Homepage → Courses.
@@ -360,9 +379,9 @@ ${more ? `    <div class="c-more rv">${button(i18n, more, '', ARROW_OUT)}</div>`
 </section>
 `);
     if (levels) out.push(LEVEL_ASSETS);
-  }
+  };
 
-  if (S.mentors) {
+  blocks.mentors = () => {
     out.push(`<!-- ============ MENTORS ============ -->
 <section class="sec" id="mentors" style="padding-top:40px">
   <div class="wrap">
@@ -373,9 +392,9 @@ ${c.mentors.map((m) => mentorCard(m, i18n)).join('\n')}
   </div>
 </section>
 `);
-  }
+  };
 
-  if (S.stories) {
+  blocks.stories = () => {
     out.push(`<!-- ============ STORIES ============ -->
 <section class="sec" id="stories" style="padding-top:40px">
   <div class="wrap">
@@ -390,9 +409,9 @@ ${c.testimonials.map((t) => {
   </div>
 </section>
 `);
-  }
+  };
 
-  if (S.faq) {
+  blocks.faq = () => {
     out.push(`<!-- ============ FAQ ============ -->
 <section class="sec" id="faq" style="padding-top:40px">
   <div class="wrap faq-wrap">
@@ -403,15 +422,22 @@ ${c.faqs.map((q, i) => `      <details${i === 0 ? ' open' : ''}><summary>${el(i1
   </div>
 </section>
 `);
-  }
+  };
 
-  out.push(contactSection(c, i18n));
+  blocks.articles = () => { if (c.articles?.length) out.push(articlesTeaser(c, i18n, S.articles)); };
+  blocks.team = () => out.push(teamTeaser(i18n, S.team));
+  blocks.contact = () => out.push(contactSection(c, i18n));
+  const order = Object.values(S).filter((x) => blocks[x.key]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  for (const sec of order) blocks[sec.key]();
+  if (!S.contact) out.push(contactSection(c, i18n)); // as before: the contact block is always shown
   out.push('</main>\n');
   out.push(footer(c, i18n, true));
 
   const title = s.seo_title_en || s.site_name;
   return documentHtml({
     settings: s,
+    // Styles for the Articles / Team blocks, only when they are shown (otherwise the page is unchanged).
+    extraStyle: (c.articles?.length && S.articles) || S.team ? PAGE_STYLE : '',
     meta: meta({ title, description: s.seo_description_en || '', url: origin + '/', image: s.ogImageUrl, noindex }),
     body: out.join('\n'),
     bn: { _title: s.seo_title_bn || title, _search: f(S.courses, 'search_placeholder').bn || f(S.courses, 'search_placeholder').en, ...i18n.dict },
@@ -493,7 +519,7 @@ function reviewsSection(reviews, i18n) {
       ${kicker(i18n, ui('reviewsKicker'))}
       <h2 class="rv-summary">${starsHtml(Math.round(avg))} <span${i18n.attr(summaryBn)}>${summaryEn}</span></h2>
     </div>
-    <div class="t-grid">
+    <div class="t-grid rv-grid">
 ${cards}
     </div>
   </div>
@@ -538,6 +564,19 @@ const COURSE_STYLE = `<style>
 .cp-details ul,.cp-list{list-style:none;display:grid;gap:10px;margin:0 0 14px}
 .cp-details li,.cp-list li{padding-left:28px;position:relative;color:var(--muted)}
 .cp-details li::before,.cp-list li::before{content:"✓";position:absolute;left:0;color:var(--cyan);font-weight:800}
+.cm-list{display:grid;gap:18px}
+.cm{display:grid;grid-template-columns:200px 1fr;gap:26px;align-items:center;padding:22px}
+.cm-photo{aspect-ratio:1;border-radius:18px;overflow:hidden;background:var(--surface-2)}
+.cm-photo img{width:100%;height:100%;object-fit:cover}
+.cm-photo .mono{width:100%;height:100%;display:grid;place-items:center;font-size:3rem;font-weight:800;color:var(--muted)}
+.cm-photo .mono svg{width:70%;height:70%}
+.cm-info h3{font-size:1.45rem;margin:10px 0 6px}
+.cm-info .tag{display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan);padding:5px 12px;border:1px solid var(--line-2);border-radius:999px}
+.cm-cred{color:var(--ink);font-weight:600;margin-bottom:8px}
+.cm-bio{color:var(--muted);margin-bottom:8px}
+.cm-meta{color:var(--soft);font-size:.9rem}
+@media (max-width:640px){.cm{grid-template-columns:1fr;text-align:center;gap:16px}.cm-photo{max-width:220px;margin:0 auto;width:100%}}
+.rv-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))!important}
 .rv-stars{color:var(--amber);letter-spacing:2px}.rv-stars .off{opacity:.22}
 .rv-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.rv-word{font-size:.82rem;font-weight:700;color:var(--muted)}
 .rv-summary{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:clamp(1.3rem,3vw,1.8rem)!important}.rv-info{font-size:.82rem}
@@ -612,6 +651,8 @@ ${facts.map(([label, value]) => `          <div class="stat"><b${i18n.attr(value
 `);
   }
 
+  if (course.reviews?.length) body.push(reviewsSection(course.reviews, i18n));
+
   if (course.mentors.length) {
     body.push(`<section class="sec" id="mentors" style="padding-top:40px">
   <div class="wrap">
@@ -619,15 +660,14 @@ ${facts.map(([label, value]) => `          <div class="stat"><b${i18n.attr(value
       ${kicker(i18n, ui('mentorKicker'))}
       ${el(i18n, 'h2', '', UI.mentorHeading[0], UI.mentorHeading[1])}
     </div>
-    <div class="m-grid">
-${course.mentors.map((m) => mentorCard(m, i18n)).join('\n')}
+    <div class="cm-list">
+${course.mentors.map((m) => mentorRow(m, i18n)).join('\n')}
     </div>
   </div>
 </section>
 `);
   }
 
-  if (course.reviews?.length) body.push(reviewsSection(course.reviews, i18n));
 
   body.push(contactSection(c, i18n, wa));
   body.push('</main>\n');
@@ -683,4 +723,357 @@ ${footer(c, i18n, false)}`;
     body,
     bn: { _title: `${UI.notFound[1]} — ${s.site_name}`, _search: '', ...i18n.dict },
   });
+}
+
+// ======================================================================
+// Extra pages: Articles, Article, Team (Central Executives), Books
+// ======================================================================
+const P = {
+  articles: ['Articles', 'আর্টিকেল'],
+  articlesHeading: ['Read, learn, [[stay ahead]].', 'পড়ো, শেখো, [[এগিয়ে থাকো]]।'],
+  articlesIntro: ['Study tips, exam guidelines and clinical notes from MediVerse mentors.', 'মেডিভার্স মেন্টরদের লেখা পড়ার টিপস, পরীক্ষার গাইডলাইন আর ক্লিনিক্যাল নোটস।'],
+  noArticles: ['New articles are coming soon.', 'নতুন আর্টিকেল শীঘ্রই আসছে।'],
+  readMore: ['Read article', 'পুরোটা পড়ো'],
+  minRead: ['min read', 'মিনিটে পড়া'],
+  views: ['views', 'বার পড়া হয়েছে'],
+  writtenBy: ['Written by', 'লিখেছেন'],
+  backArticles: ['All articles', 'সব আর্টিকেল'],
+  share: ['Share', 'শেয়ার'],
+  copied: ['Link copied', 'লিংক কপি হয়েছে'],
+  team: ['Central Executives', 'সেন্ট্রাল এক্সিকিউটিভ'],
+  teamHeading: ['Meet our [[Central Executives]].', 'আমাদের [[সেন্ট্রাল এক্সিকিউটিভদের]] সাথে পরিচিত হও।'],
+  teamIntro: ['The people who plan, build and run MediVerse Dental.', 'যাঁরা মেডিভার্স ডেন্টালকে পরিকল্পনা করেন, গড়ে তোলেন আর চালান।'],
+  noTeam: ['Team profiles are coming soon.', 'টিমের প্রোফাইল শীঘ্রই আসছে।'],
+  joinHeading: ['Want to Be Part of [[MediVerse]]?', '[[মেডিভার্সের]] অংশ হতে চাও?'],
+  joinBody: ['Join our growing team and contribute to the future of dental education in Bangladesh. We welcome passionate and dedicated individuals who want to make a difference.',
+    'আমাদের বাড়তে থাকা টিমে যোগ দাও, আর বাংলাদেশের ডেন্টাল শিক্ষার ভবিষ্যৎ গড়তে অবদান রাখো। যারা আন্তরিক, নিবেদিত আর কিছু বদলাতে চায়, তাদের আমরা স্বাগত জানাই।'],
+  joinWa: ['Contact via WhatsApp', 'হোয়াটসঅ্যাপে যোগাযোগ করো'],
+  joinMail: ['Apply via Email', 'ইমেইলে আবেদন করো'],
+  books: ['Books', 'বই'],
+  booksHeading: ['Books for [[dental students]].', '[[ডেন্টাল স্টুডেন্টদের]] জন্য বই।'],
+  booksIntro: ['Online and printed books by MediVerse mentors and trusted authors.', 'মেডিভার্স মেন্টর আর বিশ্বস্ত লেখকদের অনলাইন ও ছাপা বই।'],
+  all: ['All', 'সব'],
+  online: ['Online', 'অনলাইন'],
+  offline: ['Offline (printed)', 'অফলাইন (ছাপা)'],
+  noBooks: ['Books are coming soon.', 'বই শীঘ্রই আসছে।'],
+  by: ['by', 'লেখক:'],
+  mentor: ['Mentor', 'মেন্টর'],
+  view: ['View', 'দেখো'],
+  articleNotFound: ['Article not found', 'আর্টিকেলটি পাওয়া যায়নি'],
+  articleNotFoundBody: ['This article is not available. Browse all articles instead.', 'এই আর্টিকেলটি এখন নেই। সব আর্টিকেল দেখে নাও।'],
+};
+const JOIN_WA = 'Hello MediVerse Dental! I\'m interested in joining your team. Could you please share more details about the available opportunities?';
+const JOIN_SUBJECT = 'Application to Join MediVerse Dental Team';
+const JOIN_BODY = 'Hello MediVerse Dental Team,\n\nI am interested in joining your team. I would appreciate it if you could share more information about the available opportunities and application process.\n\nThank you.';
+const EMAIL_OK = /^[^@\s<>"'`]+@[^@\s<>"'`]+\.[a-z]{2,}$/i;
+
+const PAGE_STYLE = `<style>
+.pg-hero{padding:130px 0 30px}
+.pg-hero h1{font-size:clamp(2rem,4.6vw,3.3rem);font-weight:800;margin:18px 0 14px}
+.pg-hero .lead{font-size:1.08rem;color:var(--muted);max-width:720px;margin:0}
+.a-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.a-grid:has(> :only-child){max-width:760px;margin:0 auto}
+.a-card{display:flex;flex-direction:column;overflow:hidden;color:inherit}
+.a-card .a-img{aspect-ratio:16/9;background:var(--surface-2);overflow:hidden}
+.a-card .a-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.a-card:hover .a-img img{transform:scale(1.04)}
+.a-ph{width:100%;height:100%;display:grid;place-items:center;padding:20px;text-align:center;font-weight:800;font-size:1.2rem;background:linear-gradient(135deg,rgba(53,224,255,.18),rgba(139,108,255,.25))}
+.a-body{padding:20px 22px 22px;display:flex;flex-direction:column;gap:10px;flex:1}
+.a-cat{font-size:.74rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}
+.a-body h3{font-size:1.2rem;line-height:1.3}
+.a-body p{color:var(--muted);font-size:.95rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.a-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.84rem;color:var(--soft);margin-top:auto}
+.a-meta b{color:var(--cyan);font-weight:700}
+.art{max-width:780px;margin:0 auto}
+.art .back{display:inline-flex;gap:6px;color:var(--muted);font-weight:600;margin-bottom:18px}
+.art h1{font-size:clamp(1.9rem,4.4vw,3rem);font-weight:800;margin:14px 0 14px;line-height:1.2}
+.art .lead{font-size:1.12rem;color:var(--muted);margin-bottom:20px}
+.art-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;color:var(--soft);font-size:.92rem;padding-bottom:20px;border-bottom:1px solid var(--line);margin-bottom:26px}
+.art-meta .by b{color:var(--cyan)}
+.art-share{margin-left:auto;padding:8px 16px;border-radius:999px;border:1px solid var(--line-2);font-weight:700;color:var(--ink)}
+.art-cover{border-radius:22px;overflow:hidden;margin-bottom:30px;border:1px solid var(--line)}
+.art-cover img{width:100%;height:auto}
+.art-body{font-size:1.08rem;line-height:1.85;color:var(--ink)}
+.art-body h2{font-size:1.6rem;margin:34px 0 12px}
+.art-body h3{font-size:1.25rem;margin:26px 0 10px}
+.art-body p{margin:0 0 18px;color:var(--ink);opacity:.92}
+.art-body ul,.art-body ol{margin:0 0 18px 1.3em;display:grid;gap:8px}
+.art-body blockquote{margin:0 0 18px;padding:14px 18px;border-left:4px solid var(--cyan);background:var(--surface);border-radius:0 14px 14px 0;color:var(--muted)}
+.art-body figure{margin:26px 0}
+.art-body figure img{border-radius:16px;width:100%;height:auto;border:1px solid var(--line)}
+.art-body figcaption{text-align:center;color:var(--soft);font-size:.88rem;margin-top:8px}
+.tm-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:20px}
+.tm-grid .tm-card{flex:0 1 260px;min-width:min(100%,230px)}
+.tm-card{text-align:center;padding:22px 18px 24px}
+.tm-photo{width:150px;height:150px;border-radius:50%;margin:0 auto 16px;overflow:hidden;background:var(--grad);padding:3px}
+.tm-photo img,.tm-photo .mono{width:100%;height:100%;border-radius:50%;object-fit:cover;background:var(--bg-2);display:grid;place-items:center;font-size:2.4rem;font-weight:800;color:var(--muted)}
+.tm-card h3{font-size:1.15rem;margin-bottom:8px}
+.tm-role{display:inline-block;font-size:.76rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:999px;background:var(--grad);color:#fff;margin-bottom:10px}
+.tm-card p{color:var(--muted);font-size:.92rem}
+.join{padding:44px 30px;text-align:center;position:relative;overflow:hidden}
+.join h2{font-size:clamp(1.7rem,3.6vw,2.5rem);font-weight:800;margin-bottom:14px}
+.join p{color:var(--muted);max-width:680px;margin:0 auto 26px;font-size:1.05rem}
+.join .hero-cta{justify-content:center}
+.bk-tabs{display:inline-flex;gap:6px;padding:6px;border:1px solid var(--line);border-radius:16px;background:var(--surface);margin-bottom:26px;flex-wrap:wrap}
+.bk-tabs button{padding:10px 18px;border-radius:11px;font-weight:700;font-size:.9rem;color:var(--muted)}
+.bk-tabs button.active{background:var(--grad);color:#fff}
+.bk-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:20px}
+.bk-grid .bk-card{flex:0 1 280px;min-width:min(100%,240px)}
+.bk-card{display:flex;flex-direction:column;overflow:hidden;padding:0}
+.a-card{padding:0}
+.bk-card.hide{display:none}
+.bk-cover{aspect-ratio:3/4;background:var(--surface-2);position:relative;overflow:hidden}
+.bk-cover img{width:100%;height:100%;object-fit:cover}
+.bk-cover .a-ph{height:100%}
+.bk-type{position:absolute;top:12px;left:12px;font-size:.74rem;font-weight:800;padding:5px 11px;border-radius:999px;background:rgba(6,14,31,.82);color:#fff;backdrop-filter:blur(6px)}
+.bk-body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
+.bk-body h3{font-size:1.15rem;line-height:1.3}
+.bk-sub{color:var(--muted);font-size:.9rem}
+.bk-body p.desc{color:var(--muted);font-size:.93rem}
+.bk-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:8px}
+.bk-price{font-weight:800;font-size:1.1rem}
+.bk-foot .btn{padding:10px 16px;font-size:.88rem}
+.pg-empty{display:block;text-align:center;padding:50px 20px;color:var(--muted);border:1px dashed var(--line-2);border-radius:var(--radius)}
+.team-cta{padding:36px 30px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px}
+.team-cta h2{font-size:clamp(1.5rem,3vw,2.1rem);font-weight:800;margin:12px 0 8px}
+.team-cta p{color:var(--muted);max-width:620px}
+@media (max-width:640px){.bk-grid .bk-card{flex:1 1 100%}.tm-grid{gap:12px}.tm-grid .tm-card{flex:1 1 calc(50% - 6px);min-width:0;padding:16px 10px 18px}.tm-photo{width:100px;height:100px}.tm-card h3{font-size:1rem}.tm-role{font-size:.66rem}.pg-hero{padding:110px 0 20px}.join{padding:34px 20px}.team-cta{padding:28px 20px}.art-share{margin-left:0}}
+</style>`;
+
+const fmtDate = (iso, lang) => {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Dhaka' }); } catch { return ''; }
+};
+const pairEl = (i18n, tag, cls, p) => el(i18n, tag, cls, p[0], p[1]);
+const placeholder = (title) => `<div class="a-ph"><span>${esc(title)}</span></div>`;
+
+function articleCard(a, i18n) {
+  const bnCls = a.lang === 'bn' ? ' bn' : '';
+  const meta = [
+    `<span>${esc(fmtDate(a.published_at, 'en'))}</span>`,
+    a.read_minutes ? `<span><span${i18n.attr(`${bnDigits(a.read_minutes)} ${P.minRead[1]}`)}>${a.read_minutes} ${P.minRead[0]}</span></span>` : '',
+    `<b>${esc(a.author_name)}</b>`,
+  ].filter(Boolean).join('');
+  return `      <a class="card a-card rv" href="/articles/${esc(a.slug)}">
+        <div class="a-img">${a.coverUrl ? `<img src="${esc(a.coverUrl)}" alt="${esc(a.title)}" loading="lazy" decoding="async">` : placeholder(a.title)}</div>
+        <div class="a-body">
+          ${a.category ? `<span class="a-cat">${esc(a.category)}</span>` : ''}
+          <h3 class="${bnCls.trim()}" lang="${esc(a.lang)}">${esc(a.title)}</h3>
+          ${a.excerpt ? `<p class="${bnCls.trim()}" lang="${esc(a.lang)}">${esc(a.excerpt)}</p>` : ''}
+          <div class="a-meta">${meta}</div>
+        </div>
+      </a>`;
+}
+
+// Homepage: latest 3 articles.
+function articlesTeaser(c, i18n, sec) {
+  const btns = (sec.content.buttons || []).map((b) => button(i18n, b)).join('\n');
+  return `<!-- ============ ARTICLES ============ -->
+<section class="sec" id="articles" style="padding-top:40px">
+  <div class="wrap">
+${sectionHead(i18n, sec)}
+    <div class="a-grid">
+${c.articles.slice(0, 3).map((a) => articleCard(a, i18n)).join('\n')}
+    </div>
+${btns ? `    <div class="c-more rv">${btns}</div>` : ''}
+  </div>
+</section>
+`;
+}
+
+// Homepage: "Meet Our Central Executives" call-to-action.
+function teamTeaser(i18n, sec) {
+  const btns = (sec.content.buttons || []).map((b) => button(i18n, b, '', ARROW_RIGHT)).join('\n');
+  return `<!-- ============ TEAM ============ -->
+<section class="sec" id="team" style="padding-top:20px">
+  <div class="wrap">
+    <div class="card team-cta rv">
+      <div>
+        ${kicker(i18n, f(sec, 'kicker'))}
+        ${el(i18n, 'h2', '', f(sec, 'heading').en, f(sec, 'heading').bn)}
+        ${f(sec, 'intro').en ? el(i18n, 'p', '', f(sec, 'intro').en, f(sec, 'intro').bn) : ''}
+      </div>
+      <div class="hero-cta">${btns}</div>
+    </div>
+  </div>
+</section>
+`;
+}
+
+function pageDoc(c, i18n, { origin, noindex, path, title, titleBn, description = '', image, ld, body }) {
+  const s = c.settings;
+  const parts = [`<div class="progress" id="progress"></div>
+<div class="bg-fx" aria-hidden="true"><div class="grid"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+`, header(c, i18n, false, null, path), '\n<main id="top">', body, '</main>\n', footer(c, i18n, false)];
+  return documentHtml({
+    settings: s,
+    meta: meta({ title: `${title} — ${s.site_name}`, description, url: origin + path, image: image || s.ogImageUrl, noindex,
+      extra: ld ? `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>` : '' }),
+    extraStyle: COURSE_STYLE + PAGE_STYLE,
+    body: parts.join('\n'),
+    bn: { _title: `${titleBn || title} — ${s.site_name}`, _search: '', ...i18n.dict },
+  });
+}
+
+function pageHead(i18n, kick, heading, intro) {
+  return `<section class="hero pg-hero">
+  <div class="wrap">
+    ${kicker(i18n, pair(...kick), 'kicker rv')}
+    ${el(i18n, 'h1', 'rv', heading[0], heading[1])}
+    ${el(i18n, 'p', 'lead rv', intro[0], intro[1])}
+  </div>
+</section>`;
+}
+
+export function renderArticles(c, { origin, noindex }) {
+  const i18n = new I18n();
+  const body = `${pageHead(i18n, P.articles, P.articlesHeading, P.articlesIntro)}
+<section class="sec" style="padding-top:10px">
+  <div class="wrap">
+${c.articles.length ? `    <div class="a-grid">\n${c.articles.map((a) => articleCard(a, i18n)).join('\n')}\n    </div>` : `    ${pairEl(i18n, 'p', 'pg-empty', P.noArticles)}`}
+  </div>
+</section>`;
+  return pageDoc(c, i18n, { origin, noindex, path: '/articles', title: P.articles[0], titleBn: P.articles[1], description: P.articlesIntro[0], body });
+}
+
+// Counts one view per browser session (POST /api/view), and the Share button.
+const ARTICLE_SCRIPT = (slug) => `<script>
+(function(){
+  var slug=${JSON.stringify(slug)};
+  try{if(!sessionStorage.getItem('mvd-v-'+slug)){sessionStorage.setItem('mvd-v-'+slug,'1');
+    fetch('/api/view',{method:'POST',headers:{'Content-Type':'text/plain'},body:slug,keepalive:true}).catch(function(){});}}catch(e){}
+  var b=document.getElementById('shareBtn');if(!b)return;
+  b.addEventListener('click',function(){
+    var d={title:document.title,url:location.href};
+    if(navigator.share){navigator.share(d).catch(function(){});return;}
+    if(navigator.clipboard){navigator.clipboard.writeText(location.href).then(function(){var t=b.textContent;b.textContent=b.dataset.copied;setTimeout(function(){b.textContent=t;},1800);});}
+  });
+})();
+</script>`;
+
+export function renderArticle(c, a, { origin, noindex }) {
+  const i18n = new I18n();
+  const s = c.settings;
+  const bn = a.lang === 'bn';
+  const views = Number(a.view_count) || 0;
+  const meta = [
+    `<span>📅 ${esc(fmtDate(a.published_at, 'en'))}</span>`,
+    a.read_minutes ? `<span>⏱ <span${i18n.attr(`${bnDigits(a.read_minutes)} ${P.minRead[1]}`)}>${a.read_minutes} ${P.minRead[0]}</span></span>` : '',
+    views ? `<span>👁 <span${i18n.attr(`${bnDigits(views)} ${P.views[1]}`)}>${views.toLocaleString('en-US')} ${P.views[0]}</span></span>` : '',
+    `<span class="by"><span${i18n.attr(P.writtenBy[1])}>${P.writtenBy[0]}</span> <b>${esc(a.author_name)}</b></span>`,
+    `<button class="art-share" id="shareBtn" type="button" data-copied="${esc(P.copied[0])}"${i18n.attr(P.share[1])}>${P.share[0]}</button>`,
+  ].filter(Boolean).join('\n      ');
+  const body = `<section class="hero pg-hero" style="padding-bottom:10px">
+  <div class="wrap">
+    <article class="art">
+      <a class="back" href="/articles">← <span${i18n.attr(P.backArticles[1])}>${P.backArticles[0]}</span></a><br>
+      ${a.category ? `<span class="kicker"><i></i>${esc(a.category)}</span>` : ''}
+      <h1 class="${bn ? 'bn' : ''}" lang="${esc(a.lang)}">${esc(a.title)}</h1>
+      ${a.excerpt ? `<p class="lead${bn ? ' bn' : ''}" lang="${esc(a.lang)}">${esc(a.excerpt)}</p>` : ''}
+      <div class="art-meta">
+      ${meta}
+      </div>
+      ${a.coverUrl ? `<div class="art-cover"><img src="${esc(a.coverUrl)}" alt="${esc(a.title)}"></div>` : ''}
+      <div class="art-body${bn ? ' bn' : ''}" lang="${esc(a.lang)}">
+${articleHtml(a.body, (p) => c.pathUrl(p))}
+      </div>
+    </article>
+  </div>
+</section>
+${ARTICLE_SCRIPT(a.slug)}`;
+  const ld = {
+    '@context': 'https://schema.org', '@type': 'Article', headline: a.title, description: a.excerpt || undefined,
+    datePublished: a.published_at, author: { '@type': 'Person', name: a.author_name },
+    publisher: { '@type': 'Organization', name: s.site_name }, ...(a.coverUrl ? { image: a.coverUrl } : {}),
+  };
+  return pageDoc(c, i18n, { origin, noindex, path: `/articles/${a.slug}`, title: a.title, description: a.excerpt || '', image: a.coverUrl, ld, body });
+}
+
+export function renderArticleNotFound(c, { origin }) {
+  const i18n = new I18n();
+  const body = `<section class="hero pg-hero"><div class="wrap">
+    ${el(i18n, 'h1', '', P.articleNotFound[0], P.articleNotFound[1])}
+    ${el(i18n, 'p', 'lead', P.articleNotFoundBody[0], P.articleNotFoundBody[1])}
+    <a class="btn btn-primary" href="/articles"${i18n.attr(P.backArticles[1])}>${P.backArticles[0]}</a>
+  </div></section>`;
+  return pageDoc(c, i18n, { origin, noindex: true, path: '/articles', title: P.articleNotFound[0], titleBn: P.articleNotFound[1], body });
+}
+
+function teamCard(t, i18n) {
+  const photo = t.photoUrl ? `<img src="${esc(t.photoUrl)}" alt="${esc(t.name)}" loading="lazy" decoding="async">` : `<div class="mono" aria-hidden="true">${esc(initials(t.name))}</div>`;
+  return `      <article class="card tm-card rv">
+        <div class="tm-photo">${photo}</div>
+        <h3>${esc(t.name)}</h3>
+        ${el(i18n, 'span', 'tm-role', t.designation, t.designation_bn || '')}
+        ${t.college || t.college_bn ? el(i18n, 'p', '', t.college || t.college_bn, t.college && t.college_bn ? t.college_bn : '') : ''}
+      </article>`;
+}
+
+export function renderTeam(c, { origin, noindex }) {
+  const i18n = new I18n();
+  const s = c.settings;
+  const wa = waUrl(s, JOIN_WA);
+  const email = EMAIL_OK.test(s.contact_email || '') ? s.contact_email : null;
+  const mail = email ? `mailto:${email}?subject=${encodeURIComponent(JOIN_SUBJECT)}&body=${encodeURIComponent(JOIN_BODY)}` : null;
+  const body = `${pageHead(i18n, P.team, P.teamHeading, P.teamIntro)}
+<section class="sec" style="padding-top:10px">
+  <div class="wrap">
+${c.team.length ? `    <div class="tm-grid">\n${c.team.map((t) => teamCard(t, i18n)).join('\n')}\n    </div>` : `    ${pairEl(i18n, 'p', 'pg-empty', P.noTeam)}`}
+  </div>
+</section>
+<section class="sec" id="join" style="padding-top:20px">
+  <div class="wrap">
+    <div class="card join rv">
+      ${el(i18n, 'h2', '', P.joinHeading[0], P.joinHeading[1])}
+      ${el(i18n, 'p', '', P.joinBody[0], P.joinBody[1])}
+      <div class="hero-cta">
+        ${s.whatsapp_number ? `<a class="btn btn-primary" href="${esc(wa)}" target="_blank" rel="noopener"${i18n.attr(P.joinWa[1])}>${P.joinWa[0]}</a>` : ''}
+        ${mail ? `<a class="btn btn-ghost" href="${esc(mail)}"${i18n.attr(P.joinMail[1])}>${P.joinMail[0]}</a>` : ''}
+      </div>
+    </div>
+  </div>
+</section>`;
+  return pageDoc(c, i18n, { origin, noindex, path: '/team', title: P.team[0], titleBn: P.team[1], description: P.teamIntro[0], body });
+}
+
+function bookCard(b, i18n) {
+  const type = b.book_type === 'online' ? P.online : P.offline;
+  const link = safeUrl(b.link_url, '');
+  return `      <article class="card bk-card rv" data-type="${b.book_type === 'online' ? 'online' : 'offline'}">
+        <div class="bk-cover">${b.coverUrl ? `<img src="${esc(b.coverUrl)}" alt="${esc(b.title)}" loading="lazy" decoding="async">` : placeholder(b.title)}${el(i18n, 'span', 'bk-type', type[0], type[1])}</div>
+        <div class="bk-body">
+          <h3>${esc(b.title)}</h3>
+          ${b.author ? `<span class="bk-sub"><span${i18n.attr(P.by[1])}>${P.by[0]}</span> ${esc(b.author)}</span>` : ''}
+          ${b.mentor_name ? `<span class="bk-sub"><span${i18n.attr(P.mentor[1])}>${P.mentor[0]}</span>: ${esc(b.mentor_name)}</span>` : ''}
+          ${b.description ? `<p class="desc">${inline(b.description)}</p>` : ''}
+          <div class="bk-foot">
+            ${b.price ? `<span class="bk-price">${esc(b.price)}</span>` : '<span></span>'}
+            ${link ? `<a class="btn btn-primary" href="${esc(link)}" target="_blank" rel="noopener">${esc(b.link_label || P.view[0])}</a>` : ''}
+          </div>
+        </div>
+      </article>`;
+}
+
+const BOOKS_SCRIPT = `<script>
+(function(){
+  var tabs=[].slice.call(document.querySelectorAll('.bk-tabs button')),cards=[].slice.call(document.querySelectorAll('.bk-card'));
+  tabs.forEach(function(t){t.addEventListener('click',function(){
+    tabs.forEach(function(b){var on=b===t;b.classList.toggle('active',on);b.setAttribute('aria-selected',on);});
+    cards.forEach(function(c){c.classList.toggle('hide',t.dataset.t!=='all'&&c.dataset.type!==t.dataset.t);});
+  });});
+})();
+</script>`;
+
+export function renderBooks(c, { origin, noindex }) {
+  const i18n = new I18n();
+  const tab = (t, p, on) => `<button type="button" data-t="${t}" role="tab" aria-selected="${on}"${on ? ' class="active"' : ''}${i18n.attr(p[1])}>${p[0]}</button>`;
+  const body = `${pageHead(i18n, P.books, P.booksHeading, P.booksIntro)}
+<section class="sec" style="padding-top:10px">
+  <div class="wrap">
+${c.books.length ? `    <div class="bk-tabs" role="tablist" aria-label="Book type">${tab('all', P.all, true)}${tab('online', P.online, false)}${tab('offline', P.offline, false)}</div>
+    <div class="bk-grid">\n${c.books.map((b) => bookCard(b, i18n)).join('\n')}\n    </div>` : `    ${pairEl(i18n, 'p', 'pg-empty', P.noBooks)}`}
+  </div>
+</section>
+${c.books.length ? BOOKS_SCRIPT : ''}`;
+  return pageDoc(c, i18n, { origin, noindex, path: '/books', title: P.books[0], titleBn: P.books[1], description: P.booksIntro[0], body });
 }

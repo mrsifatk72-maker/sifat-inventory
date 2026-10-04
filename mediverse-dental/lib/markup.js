@@ -64,3 +64,48 @@ export function blocks(text) {
   }
   return out.join('');
 }
+
+// Article body. Safe markup only (no HTML is ever passed through):
+//   ## Heading / ### Sub-heading, "- " bullets, "1. " numbered items, "> " quote,
+//   ![description](articles/photo.webp) on its own line = image from our media library,
+//   blank line = new paragraph, plus everything inline() supports (**bold**, [[highlight]], [link](url)).
+// `imageUrl(path)` returns the public URL for an allowed media path, or null.
+export const ARTICLE_IMAGE_PATH = /^(articles|images|books|team|flyers|thumbnails|mentors|banners|logos)\/[A-Za-z0-9][A-Za-z0-9._-]{0,150}\.(jpe?g|png|webp|avif)$/;
+export function articleHtml(text, imageUrl) {
+  const out = [];
+  let list = null; // { tag, items }
+  let para = [];
+  const flushPara = () => { if (para.length) { out.push(`<p>${inline(para.join('\n'))}</p>`); para = []; } };
+  const flushList = () => { if (list) { out.push(`<${list.tag}>${list.items.map((x) => `<li>${inline(x)}</li>`).join('')}</${list.tag}>`); list = null; } };
+  const flush = () => { flushPara(); flushList(); };
+  for (const raw of String(text ?? '').replace(/\r\n/g, '\n').split('\n')) {
+    const line = raw.trimEnd();
+    let m;
+    if (!line.trim()) { flush(); continue; }
+    if ((m = /^(#{2,3})\s+(.+)$/.exec(line))) { flush(); out.push(`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`); continue; }
+    if ((m = /^!\[([^\]\n]{0,200})\]\(([^)\s]+)\)$/.exec(line.trim()))) {
+      flush();
+      const src = ARTICLE_IMAGE_PATH.test(m[2]) ? imageUrl(m[2]) : null;
+      if (src) out.push(`<figure><img src="${esc(src)}" alt="${esc(m[1])}" loading="lazy" decoding="async">${m[1] ? `<figcaption>${esc(m[1])}</figcaption>` : ''}</figure>`);
+      continue;
+    }
+    if ((m = /^>\s?(.*)$/.exec(line))) { flush(); out.push(`<blockquote>${inline(m[1])}</blockquote>`); continue; }
+    const bullet = /^\s*[-•]\s+(.+)$/.exec(line);
+    const numbered = /^\s*\d{1,3}[.)]\s+(.+)$/.exec(line);
+    if (bullet || numbered) {
+      flushPara();
+      const tag = bullet ? 'ul' : 'ol';
+      if (list && list.tag !== tag) flushList();
+      if (!list) list = { tag, items: [] };
+      list.items.push((bullet || numbered)[1]);
+      continue;
+    }
+    flushList();
+    para.push(line);
+  }
+  flush();
+  return out.join('\n');
+}
+
+// Reading time in minutes (≈200 words/min, minimum 1).
+export const readMinutes = (text) => Math.max(1, Math.round(String(text || '').split(/\s+/).filter(Boolean).length / 200));
