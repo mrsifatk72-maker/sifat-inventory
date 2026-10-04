@@ -29,6 +29,15 @@ function route(req) {
   return { name: 'home' };
 }
 
+// A short, non-secret reason shown on the error page so a misconfigured deploy is easy to spot.
+export function failCode(err) {
+  const m = String(err?.message || '');
+  if (/SUPABASE_URL|SUPABASE_ANON_KEY/.test(m)) return 'SETUP';
+  const http = /HTTP (\d{3})/.exec(m);
+  if (http) return ['401', '403'].includes(http[1]) ? 'KEY' : `DB-${http[1]}`;
+  return 'NETWORK';
+}
+
 function send(res, status, html, { cache, noindex }) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -52,7 +61,7 @@ export function makeHandler({ env = process.env, fetchImpl = fetch } = {}) {
       content = await loadContent(config(env), fetchImpl, extra);
     } catch (err) {
       console.error('Content load failed:', err.message);
-      return send(res, 503, '<!doctype html><meta charset="utf-8"><title>Temporarily unavailable</title><p style="font-family:sans-serif;padding:40px">The site is temporarily unavailable. Please try again in a minute.</p>',
+      return send(res, 503, '<!doctype html><meta charset="utf-8"><title>Temporarily unavailable</title><p style="font-family:sans-serif;padding:40px">The site is temporarily unavailable. Please try again in a minute.</p><p style="font-family:sans-serif;padding:0 40px;color:#888;font-size:13px">Code: ' + failCode(err) + '</p>',
         { cache: 'no-store', noindex: true });
     }
 
