@@ -554,7 +554,7 @@ const COURSE_STYLE = `<style>
 .cp-flyer .c-img{aspect-ratio:auto}
 .cp-flyer img{width:100%;height:auto;display:block}
 .cp-info h1{font-size:clamp(2rem,4.6vw,3.3rem);font-weight:800;margin:18px 0 14px}
-.cp-info .lead{font-size:1.1rem;color:var(--muted);margin-bottom:28px}
+.hero .cp-info p.lead{font-size:1.1rem;color:var(--muted);max-width:none;margin:0 0 28px}
 .cp-info .hero-cta{justify-content:flex-start;margin-bottom:28px}
 .cp-facts{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px}
 .cp-facts .stat b{font-size:1.25rem}
@@ -581,7 +581,8 @@ const COURSE_STYLE = `<style>
 .rv-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.rv-word{font-size:.82rem;font-weight:700;color:var(--muted)}
 .rv-summary{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:clamp(1.3rem,3vw,1.8rem)!important}.rv-info{font-size:.82rem}
 .cp-soon{display:inline-block;margin-left:10px;padding:5px 11px;border-radius:999px;font-size:.75rem;font-weight:800;background:var(--grad-warm);color:#1a0d00;vertical-align:middle}
-@media (max-width:1024px){.cp-grid{grid-template-columns:1fr;gap:28px}.cp-flyer{position:static;max-width:520px}}
+@media (max-width:1024px){.cp-grid{gap:28px}}
+@media (max-width:760px){.cp-grid{grid-template-columns:1fr}.cp-flyer{position:static;max-width:520px;width:100%;margin:0 auto}}
 @media (max-width:640px){.cp-info .hero-cta .btn{flex:1 1 100%}}
 </style>`;
 
@@ -770,7 +771,10 @@ const EMAIL_OK = /^[^@\s<>"'`]+@[^@\s<>"'`]+\.[a-z]{2,}$/i;
 const PAGE_STYLE = `<style>
 .pg-hero{padding:130px 0 30px}
 .pg-hero h1{font-size:clamp(2rem,4.6vw,3.3rem);font-weight:800;margin:18px 0 14px}
-.pg-hero .lead{font-size:1.08rem;color:var(--muted);max-width:720px;margin:0}
+.pg-hero .wrap{text-align:center}
+.pg-hero .lead{font-size:1.08rem;color:var(--muted);max-width:720px;margin:0 auto}
+.pg-hero .art{text-align:left}
+.hero .art p.lead{max-width:none;margin:0 0 20px}
 .a-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
 .a-grid:has(> :only-child){max-width:760px;margin:0 auto}
 .a-card{display:flex;flex-direction:column;overflow:hidden;color:inherit}
