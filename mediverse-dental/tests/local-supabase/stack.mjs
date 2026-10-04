@@ -248,7 +248,7 @@ export async function startStack({ users = [] } = {}) {
       applyHeaders(res, p);
       if (p === '/api/admin-config') return adminConfig(req, res);
       if (p === '/api/view') return viewApi(req, res);
-      if (p === '/' || /^\/courses\/[^/]+\/?$/.test(p) || /^\/(articles|team|books)(\/[^/]+)?\/?$/.test(p)) return site(req, res);
+      if (p === '/' || p === '/robots.txt' || p === '/sitemap.xml' || /^\/courses\/[^/]+\/?$/.test(p) || /^\/(articles|team|books)(\/[^/]+)?\/?$/.test(p)) return site(req, res);
       if (p === '/admin' || p.startsWith('/admin/')) {
         const rel = p.replace(/^\/admin\/?/, '');
         let file = join(ROOT, 'public/admin', rel);

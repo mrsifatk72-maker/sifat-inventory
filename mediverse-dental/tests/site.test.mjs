@@ -207,3 +207,36 @@ test('article formatter: headings, lists, images only from the media library, no
   assert.ok(!html.includes('<img src=x'));
   assert.ok(!html.includes('href="javascript'));
 });
+
+test('SEO: robots.txt + sitemap.xml; only the official domain is indexable', async () => {
+  const call = async (env, url, host) => {
+    const h = makeHandler({ env: { SUPABASE_URL: base, SUPABASE_ANON_KEY: 'local-test-anon-key', ...env } });
+    const out = { headers: {} };
+    await h({ url, headers: { host } }, { setHeader: (k, v) => { out.headers[k] = v; }, end: (b) => { out.body = b; }, set statusCode(v) { out.status = v; } });
+    return out;
+  };
+  const LIVE = { SITE_URL: 'https://dental.mediversebd.com', ALLOW_INDEXING: 'true' };
+  // Staging (no ALLOW_INDEXING): everything blocked.
+  const stg = await call({}, '/api/page?route=robots', 'x.vercel.app');
+  assert.match(stg.body, /Disallow: \/\n/);
+  // Production domain: indexable, admin + api blocked, sitemap advertised.
+  const robots = await call(LIVE, '/api/page?route=robots', 'dental.mediversebd.com');
+  assert.match(robots.headers['Content-Type'], /text\/plain/);
+  assert.match(robots.body, /Allow: \/\nDisallow: \/admin\nDisallow: \/api\//);
+  assert.ok(robots.body.includes('Sitemap: https://dental.mediversebd.com/sitemap.xml'));
+  const home = await call(LIVE, '/api/page?route=home', 'dental.mediversebd.com');
+  assert.ok(home.body.includes('<meta name="robots" content="index, follow, max-image-preview:large">'));
+  assert.ok(home.body.includes('<link rel="canonical" href="https://dental.mediversebd.com/">'));
+  assert.ok(home.body.includes('"@type":"EducationalOrganization"') && home.body.includes('og:site_name'));
+  assert.ok(!home.headers['X-Robots-Tag']);
+  // Same deploy reached via its *.vercel.app address: never indexed (no duplicate site in Google).
+  const dup = await call(LIVE, '/api/page?route=home', 'mediverse-dental-live.vercel.app');
+  assert.ok(dup.body.includes('noindex, nofollow') && dup.headers['X-Robots-Tag']);
+  assert.match((await call(LIVE, '/api/page?route=robots', 'mediverse-dental-live.vercel.app')).body, /Disallow: \/\n/);
+  // Sitemap lists the home page and every course on the official domain.
+  const sm = await call(LIVE, '/api/page?route=sitemap', 'dental.mediversebd.com');
+  assert.match(sm.headers['Content-Type'], /application\/xml/);
+  assert.ok(sm.body.startsWith('<?xml') && sm.body.includes('<loc>https://dental.mediversebd.com/</loc>'));
+  for (const c of FIXTURE.courses) assert.ok(sm.body.includes(`<loc>https://dental.mediversebd.com/courses/${c.slug}</loc>`), c.slug);
+  assert.ok(!sm.body.includes('/admin'));
+});

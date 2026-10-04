@@ -15,6 +15,14 @@
   },
   "rewrites": [
     {
+      "source": "/robots.txt",
+      "destination": "/api/page?route=robots"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/page?route=sitemap"
+    },
+    {
       "source": "/",
       "destination": "/api/page?route=home"
     },
@@ -70,6 +78,14 @@
         {
           "key": "X-Frame-Options",
           "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "X-Permitted-Cross-Domain-Policies",
+          "value": "none"
         }
       ]
     },

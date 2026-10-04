@@ -250,22 +250,30 @@ ${c.socials.filter((x) => x.show_in_contact).map((x) => `        <a class="soc" 
 </section>`;
 }
 
-function meta({ title, description, url, image, noindex, extra = '' }) {
+function meta({ title, description, url, image, noindex, site = '', type = 'website', extra = '' }) {
   return [
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(description)}">`,
     '<meta name="theme-color" content="#060E1F">',
+    site ? `<meta property="og:site_name" content="${esc(site)}">` : '',
+    '<meta property="og:locale" content="en_US">',
+    '<meta property="og:locale:alternate" content="bn_BD">',
     `<meta property="og:title" content="${esc(title)}">`,
     `<meta property="og:description" content="${esc(description)}">`,
     `<meta property="og:url" content="${esc(url)}">`,
-    '<meta property="og:type" content="website">',
+    `<meta property="og:type" content="${type}">`,
     image ? `<meta property="og:image" content="${esc(image)}">` : '',
     `<meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">`,
+    `<meta name="twitter:title" content="${esc(title)}">`,
+    `<meta name="twitter:description" content="${esc(description)}">`,
+    image ? `<meta name="twitter:image" content="${esc(image)}">` : '',
     `<link rel="canonical" href="${esc(url)}">`,
-    noindex ? '<meta name="robots" content="noindex, nofollow">' : '',
+    noindex ? '<meta name="robots" content="noindex, nofollow">' : '<meta name="robots" content="index, follow, max-image-preview:large">',
     extra,
   ].filter(Boolean).join('\n');
 }
+
+const jsonLd = (ld) => `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
 
 // ------------------------------------------------------------- homepage ----
 export function renderHome(c, { origin, noindex }) {
@@ -438,7 +446,16 @@ ${c.faqs.map((q, i) => `      <details${i === 0 ? ' open' : ''}><summary>${el(i1
     settings: s,
     // Styles for the Articles / Team blocks, only when they are shown (otherwise the page is unchanged).
     extraStyle: (c.articles?.length && S.articles) || S.team ? PAGE_STYLE : '',
-    meta: meta({ title, description: s.seo_description_en || '', url: origin + '/', image: s.ogImageUrl, noindex }),
+    meta: meta({ title, description: s.seo_description_en || '', url: origin + '/', image: s.ogImageUrl, noindex, site: s.site_name,
+      extra: jsonLd({
+        '@context': 'https://schema.org',
+        '@graph': [
+          { '@type': 'EducationalOrganization', '@id': origin + '/#org', name: s.site_name, url: origin + '/', ...(s.logoDarkUrl ? { logo: s.logoDarkUrl } : {}),
+            ...(s.contact_email ? { email: s.contact_email } : {}),
+            sameAs: (c.socials || []).map((x) => safeUrl(x.url, '')).filter((u) => /^https:\/\//.test(u)) },
+          { '@type': 'WebSite', '@id': origin + '/#website', name: s.site_name, url: origin + '/', inLanguage: ['en', 'bn'], publisher: { '@id': origin + '/#org' } },
+        ],
+      }) }),
     body: out.join('\n'),
     bn: { _title: s.seo_title_bn || title, _search: f(S.courses, 'search_placeholder').bn || f(S.courses, 'search_placeholder').en, ...i18n.dict },
   });
@@ -690,7 +707,7 @@ ${course.mentors.map((m) => mentorRow(m, i18n)).join('\n')}
   return documentHtml({
     settings: s,
     meta: meta({
-      title, description, url, image: course.flyerUrl || s.ogImageUrl, noindex,
+      title, description, url, image: course.flyerUrl || s.ogImageUrl, noindex, site: s.site_name,
       extra: `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`,
     }),
     extraStyle: COURSE_STYLE,
@@ -913,14 +930,14 @@ function teamTeaser(i18n, sec) {
 `;
 }
 
-function pageDoc(c, i18n, { origin, noindex, path, title, titleBn, description = '', image, ld, body }) {
+function pageDoc(c, i18n, { origin, noindex, path, title, titleBn, description = '', image, ld, type, body }) {
   const s = c.settings;
   const parts = [`<div class="progress" id="progress"></div>
 <div class="bg-fx" aria-hidden="true"><div class="grid"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 `, header(c, i18n, false, null, path), '\n<main id="top">', body, '</main>\n', footer(c, i18n, false)];
   return documentHtml({
     settings: s,
-    meta: meta({ title: `${title} — ${s.site_name}`, description, url: origin + path, image: image || s.ogImageUrl, noindex,
+    meta: meta({ title: `${title} — ${s.site_name}`, description, url: origin + path, image: image || s.ogImageUrl, noindex, site: s.site_name, type,
       extra: ld ? `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>` : '' }),
     extraStyle: COURSE_STYLE + PAGE_STYLE,
     body: parts.join('\n'),
@@ -1027,7 +1044,7 @@ ${ARTICLE_SCRIPT(a.slug)}`;
     datePublished: a.published_at, author: { '@type': 'Person', name: a.author_name },
     publisher: { '@type': 'Organization', name: s.site_name }, ...(a.coverUrl ? { image: a.coverUrl } : {}),
   };
-  return pageDoc(c, i18n, { origin, noindex, path: `/articles/${a.slug}`, title: a.title, description: a.excerpt || '', image: a.coverUrl, ld, body });
+  return pageDoc(c, i18n, { origin, noindex, path: `/articles/${a.slug}`, title: a.title, description: a.excerpt || '', image: a.coverUrl, ld, type: 'article', body });
 }
 
 export function renderArticleNotFound(c, { origin }) {

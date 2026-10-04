@@ -38,8 +38,7 @@ export function startServer(port = 0, { mutate } = {}) {
       res.setHeader('Content-Type', img[1].endsWith('.png') ? 'image/png' : 'image/jpeg');
       return res.end(readFileSync(file));
     }
-    if (url.pathname === '/robots.txt') return res.end(readFileSync(new URL('public/robots.txt', ROOT)));
-    if (url.pathname === '/' || /^\/courses\/[^/]+\/?$/.test(url.pathname)) return handler(req, res);
+    if (url.pathname === '/robots.txt' || url.pathname === '/sitemap.xml' || url.pathname === '/' || /^\/courses\/[^/]+\/?$/.test(url.pathname)) return handler(req, res);
     res.statusCode = 404; res.end('not found');
   });
 
