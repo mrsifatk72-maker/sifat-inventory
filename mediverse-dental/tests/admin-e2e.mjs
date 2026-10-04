@@ -869,6 +869,13 @@ await ctx.close();
   check('articles: content formatted (h2, list, numbered list, quote, image)', /<h2>Spaced repetition<\/h2>/.test(art.html) && art.html.includes('<li>Day 3</li>') && art.html.includes('<ol><li>Read</li>') && art.html.includes('<blockquote>Revise regularly.</blockquote>') && art.html.includes('public-media/articles/brain-chart.webp'));
   check('articles: no HTML from the editor reaches the page', art.html.includes('&lt;script&gt;alert(1)&lt;/script&gt;') && !/<script>alert\(1\)<\/script>/.test(art.html));
   check('articles: listed on /articles and on the homepage', (await site('/articles')).html.includes('href="/articles/why-we-forget"') && (await site('/')).html.includes('id="articles"'));
+  {
+    const list = (await site('/articles')).html, one = (await site('/articles/why-we-forget')).html;
+    const wa = 'wa.me/8801726415926?text=Hello%20MediVerse%20Dental!%20I%20would%20like%20to%20publish%20my%20article';
+    const mail = 'mailto:mediversedental1@gmail.com?subject=Article%20Submission%20for%20MediVerse%20Dental&amp;body=';
+    check('articles: "publish your article" box with WhatsApp + email on the list and the article page',
+      [list, one].every((h) => h.includes('id="write"') && h.includes(wa) && h.includes(mail)));
+  }
   // view counter
   {
     const pp = await c3.newPage();

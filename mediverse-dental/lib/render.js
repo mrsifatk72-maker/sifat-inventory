@@ -750,6 +750,11 @@ const P = {
     'আমাদের বাড়তে থাকা টিমে যোগ দাও, আর বাংলাদেশের ডেন্টাল শিক্ষার ভবিষ্যৎ গড়তে অবদান রাখো। যারা আন্তরিক, নিবেদিত আর কিছু বদলাতে চায়, তাদের আমরা স্বাগত জানাই।'],
   joinWa: ['Contact via WhatsApp', 'হোয়াটসঅ্যাপে যোগাযোগ করো'],
   joinMail: ['Apply via Email', 'ইমেইলে আবেদন করো'],
+  writeHeading: ['Want to Publish Your [[Article]]?', 'তোমার [[লেখা]] প্রকাশ করতে চাও?'],
+  writeBody: ['Share your knowledge with dental students across Bangladesh. Send us your article, case discussion or study tips — we review every submission and publish the best ones on MediVerse Dental.',
+    'সারা বাংলাদেশের ডেন্টাল স্টুডেন্টদের সাথে তোমার জ্ঞান শেয়ার করো। তোমার আর্টিকেল, কেস ডিসকাশন বা পড়ার টিপস আমাদের পাঠাও — আমরা প্রতিটি লেখা দেখে সেরাগুলো মেডিভার্স ডেন্টালে প্রকাশ করি।'],
+  writeWa: ['Send via WhatsApp', 'হোয়াটসঅ্যাপে পাঠাও'],
+  writeMail: ['Send via Email', 'ইমেইলে পাঠাও'],
   books: ['Books', 'বই'],
   booksHeading: ['Books for [[dental students]].', '[[ডেন্টাল স্টুডেন্টদের]] জন্য বই।'],
   booksIntro: ['Online and printed books by MediVerse mentors and trusted authors.', 'মেডিভার্স মেন্টর আর বিশ্বস্ত লেখকদের অনলাইন ও ছাপা বই।'],
@@ -766,6 +771,9 @@ const P = {
 const JOIN_WA = 'Hello MediVerse Dental! I\'m interested in joining your team. Could you please share more details about the available opportunities?';
 const JOIN_SUBJECT = 'Application to Join MediVerse Dental Team';
 const JOIN_BODY = 'Hello MediVerse Dental Team,\n\nI am interested in joining your team. I would appreciate it if you could share more information about the available opportunities and application process.\n\nThank you.';
+const WRITE_WA = 'Hello MediVerse Dental! I would like to publish my article on your website. Could you please tell me how to submit it?';
+const WRITE_SUBJECT = 'Article Submission for MediVerse Dental';
+const WRITE_BODY = 'Hello MediVerse Dental Team,\n\nI would like to publish my article on MediVerse Dental.\n\nTitle:\nTopic:\nMy name, college & session:\n\n(Please attach the article or paste it below.)\n\nThank you.';
 const EMAIL_OK = /^[^@\s<>"'`]+@[^@\s<>"'`]+\.[a-z]{2,}$/i;
 
 const PAGE_STYLE = `<style>
@@ -930,6 +938,26 @@ function pageHead(i18n, kick, heading, intro) {
 </section>`;
 }
 
+// WhatsApp + email call-to-action box (Team "join us", Articles "publish yours").
+function ctaBox(c, i18n, { id, heading, text, wa, mail }) {
+  const s = c.settings;
+  const email = EMAIL_OK.test(s.contact_email || '') ? s.contact_email : null;
+  const mailto = email ? `mailto:${email}?subject=${encodeURIComponent(mail[1])}&body=${encodeURIComponent(mail[2])}` : null;
+  return `<section class="sec" id="${id}" style="padding-top:20px">
+  <div class="wrap">
+    <div class="card join rv">
+      ${el(i18n, 'h2', '', heading[0], heading[1])}
+      ${el(i18n, 'p', '', text[0], text[1])}
+      <div class="hero-cta">
+        ${s.whatsapp_number ? `<a class="btn btn-primary" href="${esc(waUrl(s, wa[1]))}" target="_blank" rel="noopener"${i18n.attr(wa[0][1])}>${wa[0][0]}</a>` : ''}
+        ${mailto ? `<a class="btn btn-ghost" href="${esc(mailto)}"${i18n.attr(mail[0][1])}>${mail[0][0]}</a>` : ''}
+      </div>
+    </div>
+  </div>
+</section>`;
+}
+const writeBox = (c, i18n) => ctaBox(c, i18n, { id: 'write', heading: P.writeHeading, text: P.writeBody, wa: [P.writeWa, WRITE_WA], mail: [P.writeMail, WRITE_SUBJECT, WRITE_BODY] });
+
 export function renderArticles(c, { origin, noindex }) {
   const i18n = new I18n();
   const body = `${pageHead(i18n, P.articles, P.articlesHeading, P.articlesIntro)}
@@ -937,7 +965,8 @@ export function renderArticles(c, { origin, noindex }) {
   <div class="wrap">
 ${c.articles.length ? `    <div class="a-grid">\n${c.articles.map((a) => articleCard(a, i18n)).join('\n')}\n    </div>` : `    ${pairEl(i18n, 'p', 'pg-empty', P.noArticles)}`}
   </div>
-</section>`;
+</section>
+${writeBox(c, i18n)}`;
   return pageDoc(c, i18n, { origin, noindex, path: '/articles', title: P.articles[0], titleBn: P.articles[1], description: P.articlesIntro[0], body });
 }
 
@@ -991,6 +1020,7 @@ ${articleHtml(a.body, (p) => c.pathUrl(p))}
     </article>
   </div>
 </section>
+${writeBox(c, i18n)}
 ${ARTICLE_SCRIPT(a.slug)}`;
   const ld = {
     '@context': 'https://schema.org', '@type': 'Article', headline: a.title, description: a.excerpt || undefined,
@@ -1022,28 +1052,13 @@ function teamCard(t, i18n) {
 
 export function renderTeam(c, { origin, noindex }) {
   const i18n = new I18n();
-  const s = c.settings;
-  const wa = waUrl(s, JOIN_WA);
-  const email = EMAIL_OK.test(s.contact_email || '') ? s.contact_email : null;
-  const mail = email ? `mailto:${email}?subject=${encodeURIComponent(JOIN_SUBJECT)}&body=${encodeURIComponent(JOIN_BODY)}` : null;
   const body = `${pageHead(i18n, P.team, P.teamHeading, P.teamIntro)}
 <section class="sec" style="padding-top:10px">
   <div class="wrap">
 ${c.team.length ? `    <div class="tm-grid">\n${c.team.map((t) => teamCard(t, i18n)).join('\n')}\n    </div>` : `    ${pairEl(i18n, 'p', 'pg-empty', P.noTeam)}`}
   </div>
 </section>
-<section class="sec" id="join" style="padding-top:20px">
-  <div class="wrap">
-    <div class="card join rv">
-      ${el(i18n, 'h2', '', P.joinHeading[0], P.joinHeading[1])}
-      ${el(i18n, 'p', '', P.joinBody[0], P.joinBody[1])}
-      <div class="hero-cta">
-        ${s.whatsapp_number ? `<a class="btn btn-primary" href="${esc(wa)}" target="_blank" rel="noopener"${i18n.attr(P.joinWa[1])}>${P.joinWa[0]}</a>` : ''}
-        ${mail ? `<a class="btn btn-ghost" href="${esc(mail)}"${i18n.attr(P.joinMail[1])}>${P.joinMail[0]}</a>` : ''}
-      </div>
-    </div>
-  </div>
-</section>`;
+${ctaBox(c, i18n, { id: 'join', heading: P.joinHeading, text: P.joinBody, wa: [P.joinWa, JOIN_WA], mail: [P.joinMail, JOIN_SUBJECT, JOIN_BODY] })}`;
   return pageDoc(c, i18n, { origin, noindex, path: '/team', title: P.team[0], titleBn: P.team[1], description: P.teamIntro[0], body });
 }
 
