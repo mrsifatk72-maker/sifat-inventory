@@ -794,6 +794,7 @@ const PAGE_STYLE = `<style>
 .art .lead{font-size:1.12rem;color:var(--muted);margin-bottom:20px}
 .art-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;color:var(--soft);font-size:.92rem;padding-bottom:20px;border-bottom:1px solid var(--line);margin-bottom:26px}
 .art-meta .by b{color:var(--cyan)}
+.art-meta .mi{vertical-align:-3px;margin-right:2px;color:var(--cyan)}
 .art-share{margin-left:auto;padding:8px 16px;border-radius:999px;border:1px solid var(--line-2);font-weight:700;color:var(--ink)}
 .art-cover{border-radius:22px;overflow:hidden;margin-bottom:30px;border:1px solid var(--line)}
 .art-cover img{width:100%;height:auto}
@@ -955,15 +956,21 @@ const ARTICLE_SCRIPT = (slug) => `<script>
 })();
 </script>`;
 
+// Small line icons for article meta (emoji like 📅 render as a fixed "July 17" on phones).
+const MI = (d) => `<svg class="mi" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICON_DATE = MI('<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>');
+const ICON_TIME = MI('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>');
+const ICON_VIEWS = MI('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>');
+
 export function renderArticle(c, a, { origin, noindex }) {
   const i18n = new I18n();
   const s = c.settings;
   const bn = a.lang === 'bn';
   const views = Number(a.view_count) || 0;
   const meta = [
-    `<span>📅 ${esc(fmtDate(a.published_at, 'en'))}</span>`,
-    a.read_minutes ? `<span>⏱ <span${i18n.attr(`${bnDigits(a.read_minutes)} ${P.minRead[1]}`)}>${a.read_minutes} ${P.minRead[0]}</span></span>` : '',
-    views ? `<span>👁 <span${i18n.attr(`${bnDigits(views)} ${P.views[1]}`)}>${views.toLocaleString('en-US')} ${P.views[0]}</span></span>` : '',
+    `<span>${ICON_DATE} ${esc(fmtDate(a.published_at, 'en'))}</span>`,
+    a.read_minutes ? `<span>${ICON_TIME} <span${i18n.attr(`${bnDigits(a.read_minutes)} ${P.minRead[1]}`)}>${a.read_minutes} ${P.minRead[0]}</span></span>` : '',
+    views ? `<span>${ICON_VIEWS} <span${i18n.attr(`${bnDigits(views)} ${P.views[1]}`)}>${views.toLocaleString('en-US')} ${P.views[0]}</span></span>` : '',
     `<span class="by"><span${i18n.attr(P.writtenBy[1])}>${P.writtenBy[0]}</span> <b>${esc(a.author_name)}</b></span>`,
     `<button class="art-share" id="shareBtn" type="button" data-copied="${esc(P.copied[0])}"${i18n.attr(P.share[1])}>${P.share[0]}</button>`,
   ].filter(Boolean).join('\n      ');
