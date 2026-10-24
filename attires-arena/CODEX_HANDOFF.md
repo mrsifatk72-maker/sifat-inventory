@@ -160,6 +160,23 @@ Below the `sm` breakpoint (640px) the homepage follows the mobile mockup:
 
 Brand tiles render text wordmarks. To show real brand logos (as in the mockup), set `Brand.logo` with files you are licensed to use; every brand card picks it up automatically.
 
+## 5c. Motion & micro-interactions
+
+All CSS (Tailwind transitions + keyframes in `tailwind.config.ts`); no animation library.
+
+| Interaction | Where |
+| --- | --- |
+| Product card: image 1.05 zoom + cross-fade to secondary image, "Quick View" fades up (opens `QuickAddModal` preview) | `product/ProductCard.tsx` — pointer devices only; on touch the card links to the PDP |
+| Category cards: 1.05 zoom, brightness 1.04, arrow drifts up-right | `category/CategoryCard.tsx`, `home/CategoryBrandTabs.tsx` |
+| Buttons: `#6B0202 → #460101`, trailing arrow slides 5px | `ui/Button.tsx` (`ArrowSlot`), hero/promo CTAs |
+| Nav underline draws left→right (250ms); also on keyboard focus | `layout/Header.tsx` |
+| Hero entrance: headline → text → CTA stagger, once per session | `home/Hero.tsx` (`heroIntroPlayed`) |
+| Drawer/modal enter + exit (slide / scale-fade), Escape, focus trap + restore, scroll lock without layout shift | `ui/Modal.tsx` (`usePresence`) |
+| Wishlist heart fill + small pop | `product/WishlistButton.tsx` |
+| One-time scroll reveal for editorial sections only | `ui/Reveal.tsx`, used in `home/HomepageView.tsx` (`REVEAL_SECTIONS`) |
+
+`future.hoverOnlyWhenSupported` is on, so hover styles never "stick" after a tap. `prefers-reduced-motion` disables animations, delays and reveals (`globals.css`, `Reveal`, `usePresence`). Only `transform`/`opacity`/`filter`/colours are animated — measured CLS is 0 at 390/768/1440px.
+
 ## 6. Appearance Editor (`/admin/appearance`)
 
 - Holds a cloned `StorefrontSettings` in React state; panels mutate it through an `update(draft => …)` helper.

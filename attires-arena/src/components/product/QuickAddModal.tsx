@@ -1,16 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, SmartImage } from "@/components/ui";
 import { imagesForColor } from "@/lib/product";
 import type { Product } from "@/types";
 import { ProductPurchasePanel } from "./ProductPurchasePanel";
 
-export function QuickAddModal({ product, brandName, initialColorId, onClose }: { product: Product; brandName?: string; initialColorId?: string; onClose: () => void }) {
+/** Product preview (Quick View) with the full purchase panel. */
+export function QuickAddModal({ open, product, brandName, initialColorId, onClose }: { open: boolean; product: Product; brandName?: string; initialColorId?: string; onClose: () => void }) {
   const [colorId, setColorId] = useState(initialColorId ?? product.colors[0]?.id ?? "");
+  // Re-sync with the swatch the shopper hovered on the card each time it opens.
+  useEffect(() => {
+    if (open && initialColorId) setColorId(initialColorId);
+  }, [open, initialColorId]);
   const image = imagesForColor(product, colorId)[0];
   return (
-    <Modal open onClose={onClose} title={`Quick add: ${product.name}`} hideTitle className="sm:max-w-3xl">
+    <Modal open={open} onClose={onClose} title={`Quick view: ${product.name}`} hideTitle className="sm:max-w-3xl">
       <div className="grid gap-6 sm:grid-cols-[1fr_1.2fr]">
         <div className="relative hidden aspect-[4/5] overflow-hidden rounded-card bg-[#F4F2F0] sm:block">
           {image && <SmartImage src={image.src} alt={image.alt} fill sizes="320px" className="object-cover" />}

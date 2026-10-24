@@ -2,11 +2,16 @@ import Link from "next/link";
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
+/** Trailing icons (arrows) slide 5px right on hover/focus. */
+function ArrowSlot({ children }: { children: ReactNode }) {
+  return <span className="inline-flex transition-transform duration-300 ease-out group-hover/btn:translate-x-[5px] group-focus-visible/btn:translate-x-[5px]">{children}</span>;
+}
+
 export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "link";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
+  "group/btn inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
 
 const variants: Record<ButtonVariant, string> = {
   primary: "bg-primary text-white hover:bg-primary-dark shadow-sm",
@@ -43,7 +48,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button ref={ref} type={type} disabled={disabled || loading} aria-busy={loading || undefined} className={buttonClasses({ variant, size, fullWidth, className })} {...props}>
       {loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden /> : leftIcon}
       {children}
-      {!loading && rightIcon}
+      {!loading && rightIcon && <ArrowSlot>{rightIcon}</ArrowSlot>}
     </button>
   );
 });
@@ -65,7 +70,7 @@ export function ButtonLink({ href, variant, size, fullWidth, className, children
     <Link href={href} onClick={onClick} className={buttonClasses({ variant, size, fullWidth, className })}>
       {leftIcon}
       {children}
-      {rightIcon}
+      {rightIcon && <ArrowSlot>{rightIcon}</ArrowSlot>}
     </Link>
   );
 }

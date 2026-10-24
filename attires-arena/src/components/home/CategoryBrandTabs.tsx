@@ -41,14 +41,14 @@ export function CategoryBrandTabs({ categories, brands }: { categories: Category
             const img = c.thumbnail ?? c.image;
             return (
               <li key={c.id}>
-                <Link href={`/category/${c.slug}`} className="block overflow-hidden rounded-xl bg-surface shadow-[0_2px_10px_-4px_rgba(23,23,23,0.18)] ring-1 ring-ink/[0.04] active:scale-[0.98]">
-                  <span className="relative block aspect-[3/2] bg-[#F4F2F0]">
-                    <SmartImage src={img.src} alt={img.alt} fill sizes="34vw" className="object-cover" />
+                <Link href={`/category/${c.slug}`} className="group block overflow-hidden rounded-xl bg-surface shadow-[0_2px_10px_-4px_rgba(23,23,23,0.18)] ring-1 ring-ink/[0.04] transition-transform duration-200 active:scale-[0.98]">
+                  <span className="relative block aspect-[3/2] overflow-hidden bg-[#F4F2F0]">
+                    <SmartImage src={img.src} alt={img.alt} fill sizes="34vw" className="object-cover transition-[transform,filter] duration-[400ms] ease-out group-hover:scale-105 group-hover:brightness-[1.04] group-active:scale-105" />
                   </span>
                   <span className="flex items-center justify-between gap-1 px-2.5 py-2">
                     <span className="truncate text-[12.5px] font-medium text-ink">{c.name}</span>
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#F3F0EC] text-ink">
-                      <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#F3F0EC] text-ink transition-colors duration-300 group-hover:bg-primary group-hover:text-white">
+                      <ChevronRight className="h-3.5 w-3.5 transition-transform duration-300 ease-out group-hover:-translate-y-px group-hover:translate-x-px" aria-hidden />
                     </span>
                   </span>
                 </Link>

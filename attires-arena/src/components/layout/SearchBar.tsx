@@ -121,7 +121,7 @@ export function SearchBar({ className, autoFocus, onNavigate, initialValue = "",
         )}
       </form>
       {showPanel && (
-        <div className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-card border border-line bg-surface shadow-lift">
+        <div className="absolute inset-x-0 top-full z-50 mt-2 origin-top animate-dropdown-in overflow-hidden rounded-card border border-line bg-surface shadow-lift">
           <ul id={listId} role="listbox" aria-label="Product suggestions" className="max-h-[60vh] overflow-y-auto py-1">
             {results.map((r, i) => (
               <li key={r.slug} id={`${listId}-opt-${i}`} role="option" aria-selected={i === active}>

@@ -9,6 +9,9 @@ const withVar = (name: string) => `rgb(var(--aa-${name}) / <alpha-value>)`;
 
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
+  // `hover:` / `group-hover:` only apply on devices that can truly hover,
+  // so taps on phones never leave "stuck" hover states.
+  future: { hoverOnlyWhenSupported: true },
   theme: {
     container: {
       center: true,
@@ -47,12 +50,18 @@ const config: Config = {
         "slide-in-left": { from: { transform: "translateX(-100%)" }, to: { transform: "translateX(0)" } },
         "slide-up": { from: { transform: "translateY(16px)", opacity: "0" }, to: { transform: "translateY(0)", opacity: "1" } },
         shimmer: { "100%": { transform: "translateX(100%)" } },
+        "dropdown-in": { from: { opacity: "0", transform: "translateY(-4px) scale(0.98)" }, to: { opacity: "1", transform: "translateY(0) scale(1)" } },
+        "fade-up": { from: { opacity: "0", transform: "translateY(14px)" } },
+        "heart-pop": { "0%": { transform: "scale(1)" }, "40%": { transform: "scale(1.22)" }, "70%": { transform: "scale(0.94)" }, "100%": { transform: "scale(1)" } },
       },
       animation: {
         "fade-in": "fade-in 200ms ease-out",
         "slide-in-right": "slide-in-right 280ms cubic-bezier(0.22,1,0.36,1)",
         "slide-in-left": "slide-in-left 280ms cubic-bezier(0.22,1,0.36,1)",
         "slide-up": "slide-up 280ms cubic-bezier(0.22,1,0.36,1)",
+        "dropdown-in": "dropdown-in 180ms cubic-bezier(0.22,1,0.36,1)",
+        "fade-up": "fade-up 600ms cubic-bezier(0.22,1,0.36,1) both",
+        "heart-pop": "heart-pop 380ms cubic-bezier(0.22,1,0.36,1)",
       },
     },
   },

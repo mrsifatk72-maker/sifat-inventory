@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Eye } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Badge, Price, Rating, SmartImage } from "@/components/ui";
@@ -36,8 +36,11 @@ export function ProductCard({ product, brandName, priority, sizes = "(min-width:
     <article className={cn("group relative", className)}>
       <div className={cn("relative overflow-hidden rounded-card", cfg.imageAspect === "portrait" ? "aspect-[4/5]" : "aspect-square")} style={{ backgroundColor: cfg.imageBackground }}>
         <Link href={href} aria-label={product.name} className="absolute inset-0">
-          {main && <SmartImage src={main.src} alt={main.alt} fill priority={priority} sizes={sizes} className="object-cover transition-opacity duration-500 group-hover:opacity-0" />}
-          {hover && <SmartImage src={hover.src} alt="" fill sizes={sizes} className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" />}
+          {/* Hover (pointer devices only): gentle 1.05 zoom + cross-fade to the secondary image. */}
+          <span className="absolute inset-0 transition-transform duration-[450ms] ease-out will-change-transform [@media(hover:hover)]:group-hover:scale-[1.05]">
+            {main && <SmartImage src={main.src} alt={main.alt} fill priority={priority} sizes={sizes} className={cn("object-cover transition-opacity duration-[400ms] ease-out", hover && "[@media(hover:hover)]:group-hover:opacity-0")} />}
+            {hover && <SmartImage src={hover.src} alt="" fill sizes={sizes} className="object-cover opacity-0 transition-opacity duration-[400ms] ease-out [@media(hover:hover)]:group-hover:opacity-100" />}
+          </span>
         </Link>
         <div className="pointer-events-none absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
           {soldOut ? (
@@ -52,12 +55,15 @@ export function ProductCard({ product, brandName, priority, sizes = "(min-width:
         </div>
         {cfg.showWishlist && <WishlistButton productId={product.id} productName={product.name} className="absolute right-2.5 top-2.5" />}
         {cfg.showQuickAdd && !soldOut && (
+          // Desktop pointer devices reveal it on hover; keyboard users get it on focus.
+          // Touch devices simply tap the card to open the product page (no hover-only features).
           <button
             type="button"
             onClick={() => setQuickAdd(true)}
-            className="absolute inset-x-2.5 bottom-2.5 hidden h-10 items-center justify-center gap-1.5 rounded-control bg-surface/95 text-xs font-medium text-ink opacity-0 shadow-sm backdrop-blur transition-all duration-200 hover:bg-primary hover:text-white focus:opacity-100 group-hover:opacity-100 md:flex"
+            aria-label={`Quick view: ${product.name}`}
+            className="absolute inset-x-2.5 bottom-2.5 hidden h-10 translate-y-2 items-center justify-center gap-1.5 rounded-control bg-surface/95 text-xs font-medium text-ink opacity-0 shadow-sm backdrop-blur transition-[opacity,transform,background-color,color] duration-300 ease-out hover:bg-primary hover:text-white focus-visible:translate-y-0 focus-visible:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 [@media(hover:hover)]:md:flex"
           >
-            <Plus className="h-3.5 w-3.5" aria-hidden /> Quick Add
+            <Eye className="h-3.5 w-3.5" aria-hidden /> Quick View
           </button>
         )}
       </div>
@@ -72,7 +78,7 @@ export function ProductCard({ product, brandName, priority, sizes = "(min-width:
         {cfg.showRating && <Rating value={product.rating.average} count={product.rating.count} />}
         {cfg.showColorSwatches && product.colors.length > 1 && <ColorSwatches colors={product.colors} activeId={colorId} onHover={setColorId} />}
       </div>
-      {quickAdd && <QuickAddModal product={product} brandName={brandName} initialColorId={colorId} onClose={() => setQuickAdd(false)} />}
+      <QuickAddModal open={quickAdd} product={product} brandName={brandName} initialColorId={colorId} onClose={() => setQuickAdd(false)} />
     </article>
   );
 }

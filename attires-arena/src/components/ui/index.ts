@@ -12,3 +12,4 @@ export * from "./Breadcrumbs";
 export * from "./DemoNotice";
 export * from "./SectionHeading";
 export * from "./SmartImage";
+export * from "./Reveal";

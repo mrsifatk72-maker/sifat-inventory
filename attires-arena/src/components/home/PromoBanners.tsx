@@ -15,8 +15,8 @@ export function PromoBanners({ banners }: { banners: Banner[] }) {
               <h2 className="font-serif text-[30px] leading-tight text-ink sm:text-4xl">{b.title}</h2>
               {b.subtitle && <p className="mt-2 text-sm text-ink/70">{b.subtitle}</p>}
               {b.cta && (
-                <span className="mt-5 inline-flex h-10 w-fit items-center gap-2 rounded-control border border-primary/70 px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary transition-colors group-hover:bg-primary group-hover:text-white">
-                  {b.cta.label} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                <span className="mt-5 inline-flex h-10 w-fit items-center gap-2 rounded-control border border-primary/70 px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary transition-colors duration-300 group-hover:bg-primary group-hover:text-white">
+                  {b.cta.label} <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 ease-out group-hover:translate-x-[5px]" aria-hidden />
                 </span>
               )}
             </div>

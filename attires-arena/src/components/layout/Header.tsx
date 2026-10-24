@@ -52,8 +52,10 @@ export function Header() {
                       <Link
                         href={item.href}
                         className={cn(
-                          "relative inline-flex items-center gap-1 py-2 text-[13px] tracking-wide transition-colors hover:text-primary",
-                          isActive(item.href) ? "text-primary after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:bg-primary" : item.highlight ? "text-primary" : "text-ink",
+                          // Underline draws left → right on hover / keyboard focus (250ms); stays drawn for the active page.
+                          "relative inline-flex items-center gap-1 rounded-sm py-2 text-[13px] tracking-wide transition-colors duration-200 hover:text-primary focus-visible:text-primary",
+                          "after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:bg-primary after:transition-transform after:duration-[250ms] after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100",
+                          isActive(item.href) ? "text-primary after:scale-x-100" : cn("after:scale-x-0", item.highlight ? "text-primary" : "text-ink"),
                         )}
                         aria-haspopup={item.children ? "true" : undefined}
                       >
@@ -61,11 +63,11 @@ export function Header() {
                         {item.children && <ChevronDown className="h-3 w-3 opacity-60 transition-transform group-hover:rotate-180" aria-hidden />}
                       </Link>
                       {item.children && (
-                        <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 pt-3 opacity-0 transition-all duration-150 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
-                          <ul className="rounded-card border border-line bg-surface p-2 shadow-lift">
+                        <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 pt-3 opacity-0 transition-[opacity,visibility] duration-200 ease-out group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+                          <ul className="origin-top translate-y-1 scale-[0.98] rounded-card border border-line bg-surface p-2 shadow-lift transition-transform duration-200 ease-out group-focus-within:translate-y-0 group-focus-within:scale-100 group-hover:translate-y-0 group-hover:scale-100">
                             {item.children.map((c) => (
                               <li key={c.href}>
-                                <Link href={c.href} className="block rounded px-3 py-2 text-sm text-ink hover:bg-selected hover:text-primary">
+                                <Link href={c.href} className="block rounded px-3 py-2 text-sm text-ink transition-colors duration-200 hover:bg-selected hover:text-primary">
                                   {c.label}
                                 </Link>
                               </li>

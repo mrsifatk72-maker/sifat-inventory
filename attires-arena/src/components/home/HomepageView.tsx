@@ -4,7 +4,7 @@ import { BrandCard } from "@/components/brand/BrandCard";
 import { CategoryCard } from "@/components/category/CategoryCard";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { ProductRail } from "@/components/product/ProductRail";
-import { SectionHeading } from "@/components/ui";
+import { Reveal, SectionHeading } from "@/components/ui";
 import type { Brand, Category, HomepageSection, Product, StorefrontSettings } from "@/types";
 import { CategoryBrandTabs, TopBrandsRow } from "./CategoryBrandTabs";
 import { Hero } from "./Hero";
@@ -20,6 +20,9 @@ export interface HomepageData {
   bestSellers: Product[];
 }
 
+/** Major editorial sections get a one-time scroll reveal; individual product cards never animate in. */
+const REVEAL_SECTIONS = new Set<HomepageSection["type"]>(["promo-banners", "featured", "best-sellers", "newsletter"]);
+
 type HomepageSettings = Pick<StorefrontSettings, "homepage" | "hero" | "promoBanners" | "valueProps" | "footer" | "theme" | "logo">;
 
 /**
@@ -33,7 +36,13 @@ export function HomepageView({ settings, data }: { settings: HomepageSettings; d
         .filter((s) => s.enabled)
         .map((section) => (
           <div key={section.id} data-section={section.type} className={section.type === "value-props" ? "hidden sm:block" : undefined}>
-            <SectionRenderer section={section} settings={settings} data={data} />
+            {REVEAL_SECTIONS.has(section.type) ? (
+              <Reveal>
+                <SectionRenderer section={section} settings={settings} data={data} />
+              </Reveal>
+            ) : (
+              <SectionRenderer section={section} settings={settings} data={data} />
+            )}
           </div>
         ))}
     </div>

@@ -13,7 +13,7 @@ export function SectionHeading({ title, subtitle, cta, className, as: Tag = "h2"
       {cta && (
         <Link href={cta.href} className="group inline-flex shrink-0 items-center gap-1 pb-1 text-xs font-medium text-primary hover:text-primary-dark sm:text-sm">
           {cta.label}
-          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
+          <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 ease-out group-hover:translate-x-[5px]" aria-hidden />
         </Link>
       )}
     </div>
