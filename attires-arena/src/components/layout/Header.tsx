@@ -39,11 +39,11 @@ export function Header() {
       <AnnouncementBar />
       <header className={cn("z-40 border-b bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/90", header.sticky && "sticky top-0", scrolled ? "border-line shadow-[0_1px_0_rgba(0,0,0,0.02)]" : "border-transparent")}>
         <div className="container">
-          <div className="grid h-[68px] grid-cols-[1fr_auto_1fr] items-center gap-2 lg:h-[92px] lg:gap-6">
+          <div className="grid h-[80px] grid-cols-[1fr_auto_1fr] items-center gap-2 lg:h-[92px] lg:gap-6">
             {/* Left: mobile menu / desktop nav */}
             <div className="flex items-center">
-              <IconButton label="Open menu" className="-ml-2.5 lg:hidden" onClick={() => setMenuOpen(true)}>
-                <Menu className="h-6 w-6" strokeWidth={1.6} />
+              <IconButton label="Open menu" className="-ml-2.5 text-primary lg:hidden" onClick={() => setMenuOpen(true)}>
+                <Menu className="h-7 w-7" strokeWidth={1.8} />
               </IconButton>
               <nav aria-label="Main" className="hidden lg:block">
                 <ul className="flex items-center gap-5 xl:gap-7">
@@ -95,15 +95,19 @@ export function Header() {
                 <Heart className="h-5 w-5" strokeWidth={1.6} />
                 {wishlist.hydrated && wishlist.ids.length > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" aria-hidden />}
               </Link>
-              <IconButton label="Open cart" badge={hydrated ? itemCount : 0} onClick={openDrawer} className="-mr-2.5 sm:mr-0">
+              <IconButton label="Open cart" badge={hydrated ? itemCount : 0} onClick={openDrawer} className="hidden sm:inline-flex">
                 <ShoppingBag className="h-5 w-5" strokeWidth={1.6} />
               </IconButton>
+              {/* Phones: account bubble (cart lives in the bottom navigation) */}
+              <Link href="/account" aria-label="Account" className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-sm sm:hidden">
+                <User className="h-5 w-5 fill-current" strokeWidth={1.5} />
+              </Link>
             </div>
           </div>
 
           {/* Mobile search row */}
           <div className="pb-3 lg:hidden">
-            <SearchBar />
+            <SearchBar variant="boxed" />
           </div>
         </div>
       </header>

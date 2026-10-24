@@ -8,7 +8,7 @@ export function AnnouncementBar() {
   const { announcement } = header;
   if (!announcement.enabled || !announcement.items.length) return null;
   return (
-    <div className="bg-primary text-white">
+    <div className="hidden bg-primary text-white sm:block">
       <div className="container flex h-9 items-center justify-center text-[11px] tracking-wide sm:justify-between sm:text-xs">
         <p className="truncate">
           <span className="sm:hidden">{announcement.items[0]}</span>

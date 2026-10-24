@@ -12,7 +12,8 @@ import { searchSuggestionsAction } from "@/services/actions";
 import type { ProductSuggestion } from "@/services";
 
 /** Search input with live product suggestions (via a server action) and keyboard navigation. */
-export function SearchBar({ className, autoFocus, onNavigate, initialValue = "" }: { className?: string; autoFocus?: boolean; onNavigate?: () => void; initialValue?: string }) {
+export function SearchBar({ className, autoFocus, onNavigate, initialValue = "", variant = "pill" }: { className?: string; autoFocus?: boolean; onNavigate?: () => void; initialValue?: string; variant?: "pill" | "boxed" }) {
+  const boxed = variant === "boxed";
   const { header } = useStorefront();
   const router = useRouter();
   const [term, setTerm] = useState(initialValue);
@@ -78,11 +79,11 @@ export function SearchBar({ className, autoFocus, onNavigate, initialValue = "" 
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
-      <form role="search" onSubmit={submit}>
+      <form role="search" onSubmit={submit} className={boxed ? "flex overflow-hidden rounded-[10px] border border-primary/20 bg-surface shadow-[0_1px_3px_rgba(70,1,1,0.06)]" : undefined}>
         <label htmlFor={`${listId}-input`} className="sr-only">
           Search products
         </label>
-        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" aria-hidden />
+        <Search className={cn("pointer-events-none absolute top-1/2 -translate-y-1/2 text-ink-muted", boxed ? "left-3.5 h-[18px] w-[18px]" : "left-3.5 h-4 w-4")} aria-hidden />
         <input
           id={`${listId}-input`}
           type="search"
@@ -101,11 +102,21 @@ export function SearchBar({ className, autoFocus, onNavigate, initialValue = "" 
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
           placeholder={header.searchPlaceholder}
-          className="h-11 w-full rounded-full border border-line bg-[#F7F6F5] pl-10 pr-10 text-sm text-ink placeholder:text-ink-muted/80 focus:border-primary/50 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/10 [&::-webkit-search-cancel-button]:hidden"
+          className={cn(
+            "w-full text-sm text-ink placeholder:text-ink-muted/80 focus:outline-none [&::-webkit-search-cancel-button]:hidden",
+            boxed
+              ? "h-[46px] min-w-0 flex-1 bg-transparent pl-11 pr-8 text-[14px]"
+              : "h-11 rounded-full border border-line bg-[#F7F6F5] pl-10 pr-10 focus:border-primary/50 focus:bg-surface focus:ring-2 focus:ring-primary/10",
+          )}
         />
         {term && (
-          <button type="button" onClick={() => setTerm("")} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-ink-muted hover:text-ink" aria-label="Clear search">
+          <button type="button" onClick={() => setTerm("")} className={cn("absolute top-1/2 -translate-y-1/2 rounded-full p-1.5 text-ink-muted hover:text-ink", boxed ? "right-[54px]" : "right-2")} aria-label="Clear search">
             <X className="h-4 w-4" />
+          </button>
+        )}
+        {boxed && (
+          <button type="submit" className="flex w-[48px] shrink-0 items-center justify-center bg-primary text-white transition-colors hover:bg-primary-dark" aria-label="Search">
+            <Search className="h-5 w-5" strokeWidth={2} />
           </button>
         )}
       </form>

@@ -70,6 +70,8 @@ export interface Category {
   name: string;
   description: string;
   image: ProductImage;
+  /** Photo used by the mobile category cards. Falls back to `image`. */
+  thumbnail?: ProductImage;
   sortOrder: number;
 }
 

@@ -20,13 +20,13 @@ export function MobileBottomNav() {
   if (pathname.startsWith("/checkout") || pathname.startsWith("/admin")) return null;
   return (
     <nav aria-label="Quick navigation" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-      <ul className="grid h-16 grid-cols-5">
+      <ul className="grid h-[68px] grid-cols-5">
         {items.map(({ href, label, Icon }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           const content = (
             <>
               <span className="relative">
-                <Icon className="h-5 w-5" strokeWidth={active ? 2 : 1.6} aria-hidden />
+                <Icon className={cn("h-6 w-6", active && "fill-current")} strokeWidth={active ? 1.8 : 1.5} aria-hidden />
                 {href === "#cart" && hydrated && itemCount > 0 && (
                   <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold text-white">{itemCount}</span>
                 )}
@@ -34,7 +34,7 @@ export function MobileBottomNav() {
               <span>{label}</span>
             </>
           );
-          const cls = cn("flex h-full flex-col items-center justify-center gap-1 text-[10px]", active ? "text-primary" : "text-ink-muted");
+          const cls = cn("flex h-full flex-col items-center justify-center gap-1 text-[11px]", active ? "font-medium text-primary" : "text-ink-muted");
           return (
             <li key={label}>
               {href === "#cart" ? (

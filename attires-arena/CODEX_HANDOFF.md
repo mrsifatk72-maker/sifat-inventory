@@ -146,6 +146,20 @@ config/*.ts ──► getStorefrontSettings() ──► <StorefrontProvider> (cl
 - Homepage order/visibility = the `homepageSections` array in `config/homepage.ts`.
 - `HomepageView` renders sections by `type` — to add a new section type, extend `HomepageSectionType` and add a `case` in `SectionRenderer`.
 
+## 5b. Mobile homepage (approved phone mockup)
+
+Below the `sm` breakpoint (640px) the homepage follows the mobile mockup:
+
+- Header: maroon menu icon, centred logo, maroon account bubble; cart moves to the bottom nav. Announcement bar hidden.
+- Search: boxed input with a maroon search button (`<SearchBar variant="boxed" />`).
+- Hero: a slide with `mobileImage` renders the light editorial layout (`MobileEditorialSlide` in `Hero.tsx`) using `titleAccent`, `tagline`, `script` and `showLogo` from the banner config. Slides without `mobileImage` use the standard dark layout.
+- `categories` section → `CategoryBrandTabs` (Categories | Brands switcher, 3-column photo cards using `Category.thumbnail`).
+- `brands` section → "Top Brands" row (`TopBrandsRow`), title from `HomepageSection.mobileTitle`.
+- Value props are hidden on phones.
+- Fonts: Playfair Display (`font-display`) and Allura (`font-script`) are loaded for these elements.
+
+Brand tiles render text wordmarks. To show real brand logos (as in the mockup), set `Brand.logo` with files you are licensed to use; every brand card picks it up automatically.
+
 ## 6. Appearance Editor (`/admin/appearance`)
 
 - Holds a cloned `StorefrontSettings` in React state; panels mutate it through an `update(draft => …)` helper.

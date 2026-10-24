@@ -7,7 +7,7 @@ export const logo: LogoSettings = {
   badge: "/brand/logo-badge.jpg",
   alt: "Attires Arena",
   heightDesktop: 78,
-  heightMobile: 50,
+  heightMobile: 64,
   showWordmarkText: false,
 };
 

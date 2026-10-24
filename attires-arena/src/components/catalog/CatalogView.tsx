@@ -40,7 +40,7 @@ export function CatalogView({ title, description, breadcrumbs, query, result, br
         </div>
         {banner}
 
-        <div className="sticky top-[124px] z-20 -mx-4 mt-5 flex items-center justify-between gap-2 border-y border-line bg-surface/95 px-4 py-2.5 backdrop-blur sm:mx-0 sm:px-0 lg:static lg:border-x-0 lg:border-t-0 lg:bg-transparent lg:pb-4 lg:pt-0">
+        <div className="sticky top-[151px] z-20 -mx-4 mt-5 flex items-center justify-between gap-2 border-y border-line bg-surface/95 px-4 py-2.5 backdrop-blur sm:mx-0 sm:px-0 lg:static lg:border-x-0 lg:border-t-0 lg:bg-transparent lg:pb-4 lg:pt-0">
           <div className="flex items-center gap-2">
             <FilterDrawer facets={result.facets} total={result.total} activeCount={active} />
             <p className="hidden text-sm text-ink-muted lg:block">

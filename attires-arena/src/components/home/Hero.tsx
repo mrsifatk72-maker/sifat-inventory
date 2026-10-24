@@ -29,6 +29,56 @@ function Slide({ banner, active, priority, uppercase }: { banner: Banner; active
   );
 }
 
+const lines = (s?: string) => (s ? s.split("|").map((l) => l.trim()) : []);
+
+/** Phone layout from the approved mobile mockup: light card, dark serif title, image on the right. */
+function MobileEditorialSlide({ banner, active, priority, logoSrc }: { banner: Banner; active: boolean; priority: boolean; logoSrc: string }) {
+  const accent = banner.titleAccent;
+  const main = accent && banner.title.endsWith(accent) ? banner.title.slice(0, -accent.length).trim() : banner.title;
+  return (
+    <div className={cn("absolute inset-0 overflow-hidden bg-[#EFE9E2] transition-opacity duration-700", active ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!active}>
+      {/* soft light from the left, like the mockup's sunlit wall */}
+      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_10%_20%,#FBF8F4_0%,#EFE9E2_55%,#E4DCD2_100%)]" />
+      {banner.mobileImage && (
+        <div className="absolute inset-y-0 right-[13%] w-[49%] [mask-image:linear-gradient(90deg,transparent_0%,#000_22%)]">
+          <SmartImage src={banner.mobileImage.src} alt={banner.mobileImage.alt} fill priority={priority} sizes="60vw" className="object-cover object-left" />
+        </div>
+      )}
+      {banner.script && (
+        <p className="absolute right-[2%] top-[13%] rotate-[-8deg] text-right font-script text-[min(4.1vw,20px)] leading-[0.95] text-ink/85" aria-hidden>
+          {lines(banner.script).map((l) => (
+            <span key={l} className="block">{l}</span>
+          ))}
+          <span className="ml-auto mt-1 block h-px w-10 rotate-[-6deg] bg-primary" />
+        </p>
+      )}
+      <div className="relative flex h-full w-[62%] flex-col justify-center pl-[5%] pr-1">
+        {banner.showLogo && (
+          <span className="mb-[2%] ml-[14%] block">
+            <SmartImage src={logoSrc} alt="" width={312} height={300} className="h-auto w-[min(8.5vw,40px)]" />
+          </span>
+        )}
+        <h2 className="font-display text-[min(8.4vw,38px)] font-bold leading-[0.95] tracking-[-0.01em] text-ink">
+          {main}
+          {accent && <span className="block text-primary">{accent}</span>}
+        </h2>
+        {banner.tagline && (
+          <p className="mt-[3%] text-[min(2.3vw,10px)] font-medium uppercase leading-[1.6] tracking-[0.3em] text-ink">
+            {lines(banner.tagline).map((l) => (
+              <span key={l} className="block">{l}</span>
+            ))}
+          </p>
+        )}
+        {banner.cta && (
+          <Link href={banner.cta.href} tabIndex={active ? 0 : -1} className="mt-[4%] inline-flex h-[min(7.4vw,36px)] w-fit items-center gap-1 rounded-full bg-primary px-[min(4vw,20px)] text-[min(3.2vw,14px)] font-medium text-white shadow-lift transition-colors hover:bg-primary-dark">
+            {banner.cta.label} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SideTile({ banner }: { banner: Banner }) {
   return (
     <Link href={banner.cta?.href ?? "#"} className="group relative block overflow-hidden rounded-card bg-[#EDE8E2]">
@@ -45,7 +95,7 @@ function SideTile({ banner }: { banner: Banner }) {
   );
 }
 
-export function Hero({ hero, uppercase = true }: { hero: HeroSettings; uppercase?: boolean }) {
+export function Hero({ hero, uppercase = true, logoSrc = "/brand/logo-maroon.png" }: { hero: HeroSettings; uppercase?: boolean; logoSrc?: string }) {
   const slides = hero.slides;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -66,12 +116,32 @@ export function Hero({ hero, uppercase = true }: { hero: HeroSettings; uppercase
   if (!slides.length) return null;
 
   return (
-    <section aria-roledescription="carousel" aria-label="Featured collections" className="container pt-2 sm:pt-4">
+    <section aria-roledescription="carousel" aria-label="Featured collections" className="container pt-1 sm:pt-4">
       <div className={cn("grid gap-3 lg:gap-4", hero.side.length ? "lg:grid-cols-[2.6fr_1fr]" : "")}>
-        <div className="relative h-[420px] overflow-hidden rounded-card bg-[#8E7B6B] sm:h-[460px] lg:h-[560px]" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+        <div className="relative aspect-[2/1] overflow-hidden rounded-2xl bg-[#8E7B6B] shadow-soft sm:aspect-auto sm:h-[460px] sm:rounded-card sm:shadow-none lg:h-[560px]" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
           {slides.map((s, i) => (
-            <Slide key={s.id} banner={s} active={i === index} priority={i === 0} uppercase={uppercase} />
+            <div key={s.id} className="contents">
+              <div className={cn(s.mobileImage && "hidden sm:contents")}>
+                <Slide banner={s} active={i === index} priority={i === 0} uppercase={uppercase} />
+              </div>
+              {s.mobileImage && (
+                <div className="sm:hidden">
+                  <MobileEditorialSlide banner={s} active={i === index} priority={i === 0} logoSrc={logoSrc} />
+                </div>
+              )}
+            </div>
           ))}
+
+          {/* Phone dots (centred, maroon — as in the mobile mockup) */}
+          {slides.length > 1 && (
+            <div className="absolute bottom-0.5 left-1/2 flex -translate-x-1/2 gap-1 sm:hidden" role="tablist" aria-label="Choose slide">
+              {slides.map((s, i) => (
+                <button key={s.id} type="button" role="tab" aria-selected={i === index} aria-label={`Slide ${i + 1}: ${s.title}`} onClick={() => go(i)} className="flex h-6 w-5 items-center justify-center">
+                  <span className={cn("block h-2 w-2 rounded-full transition-colors", i === index ? "bg-primary" : slides[index]?.mobileImage ? "bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.08)]" : "bg-white/60")} />
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Badges strip (desktop) */}
           {hero.badges.length > 0 && (
@@ -86,7 +156,7 @@ export function Hero({ hero, uppercase = true }: { hero: HeroSettings; uppercase
           )}
 
           {slides.length > 1 && (
-            <div className="absolute bottom-4 right-4 flex items-center gap-2 sm:bottom-5 sm:right-6">
+            <div className="absolute bottom-4 right-4 hidden items-center gap-2 sm:bottom-5 sm:right-6 sm:flex">
               <div className="flex items-center gap-1.5" role="tablist" aria-label="Choose slide">
                 {slides.map((s, i) => (
                   <button

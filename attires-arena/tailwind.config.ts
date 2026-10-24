@@ -30,6 +30,8 @@ const config: Config = {
       fontFamily: {
         serif: ["var(--aa-font-serif)", "Georgia", "serif"],
         sans: ["var(--aa-font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
+        script: ["var(--font-script)", "cursive"],
       },
       borderRadius: {
         card: "var(--aa-radius-card)",

@@ -4,13 +4,14 @@ import { cn } from "@/lib/cn";
 import type { Brand } from "@/types";
 
 /** Renders a brand logo image if provided, otherwise a typographic wordmark. */
-export function BrandWordmark({ brand, className }: { brand: Brand; className?: string }) {
+/** `compact` tightens letter-spacing so long names fit small tiles. */
+export function BrandWordmark({ brand, className, compact }: { brand: Brand; className?: string; compact?: boolean }) {
   const w = brand.wordmark;
   const family = w.fontFamily === "serif" || w.fontFamily === "script" ? "font-serif" : "font-sans";
   return (
     <span
       className={cn(family, w.fontFamily === "condensed" && "scale-x-90", "whitespace-nowrap text-ink", className)}
-      style={{ letterSpacing: w.letterSpacing, fontWeight: w.weight, fontStyle: w.italic ? "italic" : undefined, textTransform: w.uppercase ? "uppercase" : undefined }}
+      style={{ letterSpacing: compact ? "-0.01em" : w.letterSpacing, fontWeight: compact ? Math.max(w.weight ?? 500, 600) : w.weight, fontStyle: w.italic ? "italic" : undefined, textTransform: w.uppercase ? "uppercase" : undefined }}
     >
       {brand.name}
     </span>

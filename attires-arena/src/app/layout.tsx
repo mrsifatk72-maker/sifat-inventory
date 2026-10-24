@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Allura, Cormorant_Garamond, Inter, Playfair_Display } from "next/font/google";
 import { ThemeStyle } from "@/components/theme/ThemeStyle";
 import { CartProvider } from "@/context/CartContext";
 import { StorefrontProvider } from "@/context/StorefrontContext";
@@ -10,6 +10,9 @@ import "./globals.css";
 
 const serif = Cormorant_Garamond({ subsets: ["latin"], weight: ["400", "500", "600", "700"], style: ["normal", "italic"], variable: "--font-cormorant", display: "swap" });
 const sans = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+// Mobile editorial headings and the handwritten hero note (from the mobile mockup).
+const display = Playfair_Display({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display", display: "swap" });
+const script = Allura({ subsets: ["latin"], weight: "400", variable: "--font-script", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getStorefrontSettings();
@@ -31,7 +34,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [settings, initialCart] = await Promise.all([getStorefrontSettings(), getInitialCart()]);
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
+    <html lang="en" className={`${serif.variable} ${sans.variable} ${display.variable} ${script.variable}`}>
       <head>
         <ThemeStyle theme={settings.theme} />
       </head>

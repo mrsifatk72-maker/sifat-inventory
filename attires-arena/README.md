@@ -47,5 +47,6 @@ Page copy for policies and FAQ lives in `src/content/policies.ts`.
 ## Assets
 
 - `public/brand/` — the **official Attires Arena logo** (maroon for light backgrounds, white for the footer, badge/icon). These are recolourings of the supplied logo file, not redrawn. Replace them with the master files if you have them.
-- `public/images/` — original **placeholder** SVG illustrations (no third-party photos or brand marks). Replace with real product photography during integration.
+- `public/images/mockup/` — hero and category **photos cropped from the approved mobile mockup** (used by the phone layout). They are low resolution and the sneaker photo shows a third-party logo — replace with your own product photography before launch.
+- `public/images/` (other folders) — original **placeholder** SVG illustrations (no third-party photos or brand marks). Replace with real product photography during integration.
 - Brand names (Gucci, Zara, Lacoste, H&M, Nike, Adidas) are **demonstration entries** rendered as plain text wordmarks. No logos are shipped and no affiliation is implied.

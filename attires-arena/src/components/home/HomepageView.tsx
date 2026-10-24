@@ -1,9 +1,12 @@
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { BrandCard } from "@/components/brand/BrandCard";
 import { CategoryCard } from "@/components/category/CategoryCard";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { ProductRail } from "@/components/product/ProductRail";
 import { SectionHeading } from "@/components/ui";
 import type { Brand, Category, HomepageSection, Product, StorefrontSettings } from "@/types";
+import { CategoryBrandTabs, TopBrandsRow } from "./CategoryBrandTabs";
 import { Hero } from "./Hero";
 import { NewsletterSection } from "./NewsletterSection";
 import { PromoBanners } from "./PromoBanners";
@@ -17,7 +20,7 @@ export interface HomepageData {
   bestSellers: Product[];
 }
 
-type HomepageSettings = Pick<StorefrontSettings, "homepage" | "hero" | "promoBanners" | "valueProps" | "footer" | "theme">;
+type HomepageSettings = Pick<StorefrontSettings, "homepage" | "hero" | "promoBanners" | "valueProps" | "footer" | "theme" | "logo">;
 
 /**
  * Renders homepage sections in the configured order. Used by the real homepage
@@ -25,11 +28,11 @@ type HomepageSettings = Pick<StorefrontSettings, "homepage" | "hero" | "promoBan
  */
 export function HomepageView({ settings, data }: { settings: HomepageSettings; data: HomepageData }) {
   return (
-    <div className="space-y-12 pb-4 sm:space-y-16">
+    <div className="space-y-5 pb-4 sm:space-y-16 [&>*:nth-child(n+5)]:mt-10 sm:[&>*:nth-child(n+5)]:mt-16">
       {settings.homepage
         .filter((s) => s.enabled)
         .map((section) => (
-          <div key={section.id} data-section={section.type}>
+          <div key={section.id} data-section={section.type} className={section.type === "value-props" ? "hidden sm:block" : undefined}>
             <SectionRenderer section={section} settings={settings} data={data} />
           </div>
         ))}
@@ -41,20 +44,17 @@ function SectionRenderer({ section, settings, data }: { section: HomepageSection
   const title = section.title ?? section.adminLabel;
   switch (section.type) {
     case "hero":
-      return <Hero hero={settings.hero} uppercase={settings.theme.typography.headingUppercaseHero} />;
+      return <Hero hero={settings.hero} uppercase={settings.theme.typography.headingUppercaseHero} logoSrc={settings.logo.primary} />;
     case "value-props":
-      return <div className="-mt-6 sm:-mt-10"><ValueProps items={settings.valueProps} /></div>;
+      // Hidden on phones to match the mobile mockup (hero → Categories/Brands).
+      return <div className="-mt-10"><ValueProps items={settings.valueProps} /></div>;
     case "categories":
       return (
         <section className="container" aria-label={title}>
-          <SectionHeading title={title} subtitle={section.subtitle} cta={section.cta} />
-          <ul className="grid grid-cols-4 gap-x-2 gap-y-5 sm:hidden">
-            {data.categories.map((c) => (
-              <li key={c.id}>
-                <CategoryCard category={c} variant="circle" />
-              </li>
-            ))}
-          </ul>
+          <div className="sm:hidden">
+            <CategoryBrandTabs categories={data.categories} brands={data.brands} />
+          </div>
+          <SectionHeading title={title} subtitle={section.subtitle} cta={section.cta} className="hidden sm:flex" />
           <ul className="hidden gap-4 sm:grid sm:grid-cols-3 lg:grid-cols-6">
             {data.categories.map((c) => (
               <li key={c.id}>
@@ -67,8 +67,19 @@ function SectionRenderer({ section, settings, data }: { section: HomepageSection
     case "brands":
       return (
         <section className="container" aria-label={title}>
-          <SectionHeading title={title} subtitle={section.subtitle} cta={section.cta} />
-          <ul className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 scrollbar-none sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 lg:grid-cols-6">
+          <div className="sm:hidden">
+            <div className="mb-3 flex items-end justify-between">
+              <h2 className="font-display text-[22px] font-semibold text-ink">{section.mobileTitle ?? title}</h2>
+              {section.cta && (
+                <Link href={section.cta.href} className="flex items-center gap-1 pb-1 text-[13px] font-medium text-primary">
+                  {section.cta.label} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                </Link>
+              )}
+            </div>
+            <TopBrandsRow brands={data.brands} />
+          </div>
+          <SectionHeading title={title} subtitle={section.subtitle} cta={section.cta} className="hidden sm:flex" />
+          <ul className="hidden gap-4 sm:grid sm:grid-cols-3 lg:grid-cols-6">
             {data.brands.slice(0, 6).map((b) => (
               <li key={b.id} className="w-[38vw] max-w-[180px] shrink-0 sm:w-auto sm:max-w-none">
                 <BrandCard brand={b} />

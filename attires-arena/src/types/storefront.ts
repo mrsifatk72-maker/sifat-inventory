@@ -63,6 +63,16 @@ export interface Banner {
   tone: "light" | "dark";
   /** Optional overlay strength 0–80. */
   overlay?: number;
+  /** Second title line rendered in the primary colour (mobile editorial layout). */
+  titleAccent?: string;
+  /** Letter-spaced line under the title, e.g. "Premium Fashion · Thrift Shopping". Use "|" for a line break. */
+  tagline?: string;
+  /** Decorative handwritten note. Use "|" for line breaks. */
+  script?: string;
+  /** When set, phones show the light editorial layout with this image on the right. */
+  mobileImage?: { src: string; alt: string };
+  /** Show the brand logo above the title in the mobile editorial layout. */
+  showLogo?: boolean;
 }
 
 export type HomepageSectionType =
@@ -83,6 +93,8 @@ export interface HomepageSection {
   adminLabel: string;
   enabled: boolean;
   title?: string;
+  /** Optional shorter title used on phones (e.g. "Top Brands"). */
+  mobileTitle?: string;
   subtitle?: string;
   cta?: CtaLink;
   /** Max items for product rails / grids. */
