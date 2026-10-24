@@ -1,12 +1,13 @@
 import type { ProductCardSettings } from "@/types";
 
 export const productCard: ProductCardSettings = {
-  imageAspect: "portrait",
+  imageAspect: "landscape",
   showBrand: false,
   showRating: false,
-  showColorSwatches: true,
+  showColorSwatches: false,
   showQuickAdd: true,
   showWishlist: true,
-  showDiscountBadge: true,
+  showDiscountBadge: false,
+  showAddToCart: true,
   imageBackground: "#F4F2F0",
 };

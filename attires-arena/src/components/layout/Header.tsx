@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Heart, Menu, Search, ShoppingBag, User } from "lucide-react";
+import { ChevronDown, Heart, Menu, Search, ShoppingCart, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -39,14 +39,45 @@ export function Header() {
       <AnnouncementBar />
       <header className={cn("z-40 border-b bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/90", header.sticky && "sticky top-0", scrolled ? "border-line shadow-[0_1px_0_rgba(0,0,0,0.02)]" : "border-transparent")}>
         <div className="container">
-          <div className="grid h-[80px] grid-cols-[1fr_auto_1fr] items-center gap-2 lg:h-[92px] lg:gap-6">
-            {/* Left: mobile menu / desktop nav */}
+          <div className="grid h-[80px] grid-cols-[1fr_auto_1fr] items-center gap-2 lg:h-[96px] lg:gap-6">
+            {/* Left: mobile menu / desktop search */}
             <div className="flex items-center">
               <IconButton label="Open menu" className="-ml-2.5 text-primary lg:hidden" onClick={() => setMenuOpen(true)}>
                 <Menu className="h-7 w-7" strokeWidth={1.8} />
               </IconButton>
-              <nav aria-label="Main" className="hidden lg:block">
-                <ul className="flex items-center gap-5 xl:gap-7">
+              <SearchBar variant="boxed" className="hidden w-full max-w-[390px] lg:block" />
+            </div>
+
+            {/* Center: logo */}
+            <Logo priority />
+
+            {/* Right: icons (labelled on desktop, as in the mockup) */}
+            <div className="flex items-center justify-end gap-0.5 sm:gap-1 lg:gap-7">
+              <IconButton label="Search" className="hidden sm:inline-flex lg:hidden" onClick={() => setSearchOpen(true)}>
+                <Search className="h-5 w-5" strokeWidth={1.6} />
+              </IconButton>
+              <Link href="/account" aria-label="Account" className="hidden h-11 w-11 flex-col items-center justify-center rounded-full text-ink transition-colors hover:text-primary sm:inline-flex lg:h-auto lg:w-auto lg:gap-1 lg:rounded-none">
+                <User className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.5} />
+                <span className="hidden text-[11px] lg:block">Account</span>
+              </Link>
+              <Link href="/wishlist" aria-label={`Wishlist${wishlist.ids.length ? ` (${wishlist.ids.length})` : ""}`} className="relative hidden h-11 w-11 flex-col items-center justify-center rounded-full text-ink transition-colors hover:text-primary sm:inline-flex lg:h-auto lg:w-auto lg:gap-1 lg:rounded-none">
+                <Heart className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.5} />
+                <span className="hidden text-[11px] lg:block">Wishlist</span>
+                {wishlist.hydrated && wishlist.ids.length > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary lg:-right-1 lg:top-0" aria-hidden />}
+              </Link>
+              <button type="button" onClick={openDrawer} aria-label={`Open cart${hydrated && itemCount ? ` (${itemCount})` : ""}`} className="relative hidden h-11 w-11 flex-col items-center justify-center rounded-full text-ink transition-colors hover:text-primary sm:inline-flex lg:h-auto lg:w-auto lg:gap-1 lg:rounded-none">
+                <ShoppingCart className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.5} />
+                <span className="hidden text-[11px] lg:block">Cart</span>
+                <span className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-white lg:-right-2.5 lg:-top-2">{hydrated ? itemCount : 0}</span>
+              </button>
+              {/* Phones: account bubble (cart lives in the bottom navigation) */}
+              <Link href="/account" aria-label="Account" className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-sm sm:hidden">
+                <User className="h-5 w-5 fill-current" strokeWidth={1.5} />
+              </Link>
+            </div>
+          </div>
+              <nav aria-label="Main" className="hidden border-t border-line lg:block">
+                <ul className="flex h-12 items-center justify-center gap-8 xl:gap-11">
                   {header.navigation.map((item) => (
                     <li key={item.label} className="group relative">
                       <Link
@@ -79,33 +110,6 @@ export function Header() {
                   ))}
                 </ul>
               </nav>
-            </div>
-
-            {/* Center: logo */}
-            <Logo priority />
-
-            {/* Right: search + icons */}
-            <div className="flex items-center justify-end gap-0.5 sm:gap-1">
-              <SearchBar className="mr-2 hidden w-full max-w-[260px] xl:block" />
-              <IconButton label="Search" className="hidden lg:inline-flex xl:hidden" onClick={() => setSearchOpen(true)}>
-                <Search className="h-5 w-5" strokeWidth={1.6} />
-              </IconButton>
-              <Link href="/account" aria-label="Account" className="hidden h-11 w-11 items-center justify-center rounded-full text-ink hover:bg-ink/5 sm:inline-flex">
-                <User className="h-5 w-5" strokeWidth={1.6} />
-              </Link>
-              <Link href="/wishlist" aria-label={`Wishlist${wishlist.ids.length ? ` (${wishlist.ids.length})` : ""}`} className="relative hidden h-11 w-11 items-center justify-center rounded-full text-ink hover:bg-ink/5 sm:inline-flex">
-                <Heart className="h-5 w-5" strokeWidth={1.6} />
-                {wishlist.hydrated && wishlist.ids.length > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" aria-hidden />}
-              </Link>
-              <IconButton label="Open cart" badge={hydrated ? itemCount : 0} onClick={openDrawer} className="hidden sm:inline-flex">
-                <ShoppingBag className="h-5 w-5" strokeWidth={1.6} />
-              </IconButton>
-              {/* Phones: account bubble (cart lives in the bottom navigation) */}
-              <Link href="/account" aria-label="Account" className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-sm sm:hidden">
-                <User className="h-5 w-5 fill-current" strokeWidth={1.5} />
-              </Link>
-            </div>
-          </div>
 
           {/* Mobile search row */}
           <div className="pb-3 lg:hidden">

@@ -71,6 +71,8 @@ export interface Banner {
   script?: string;
   /** When set, phones show the light editorial layout with this image on the right. */
   mobileImage?: { src: string; alt: string };
+  /** Wider image for the light editorial layout on tablet/desktop (falls back to `mobileImage`). */
+  desktopImage?: { src: string; alt: string };
   /** Show the brand logo above the title in the mobile editorial layout. */
   showLogo?: boolean;
 }
@@ -111,7 +113,7 @@ export interface HeroSettings {
 }
 
 export interface ValueProp {
-  icon: "shield-check" | "truck" | "rotate-ccw" | "lock" | "sparkles" | "banknote";
+  icon: "shield-check" | "truck" | "rotate-ccw" | "lock" | "sparkles" | "banknote" | "gem" | "headphones";
   title: string;
   description: string;
 }
@@ -127,7 +129,8 @@ export interface SocialLink {
 }
 
 export interface HeaderSettings {
-  announcement: { enabled: boolean; items: string[]; rightLinks: CtaLink[] };
+  /** Desktop: `left` · centre `items` · `promo` (right). Phones show nothing (approved mobile mockup). */
+  announcement: { enabled: boolean; left?: string; items: string[]; promo?: string; rightLinks: CtaLink[] };
   navigation: NavItem[];
   searchPlaceholder: string;
   sticky: boolean;
@@ -144,13 +147,15 @@ export interface FooterSettings {
 }
 
 export interface ProductCardSettings {
-  imageAspect: "portrait" | "square";
+  imageAspect: "portrait" | "square" | "landscape";
   showBrand: boolean;
   showRating: boolean;
   showColorSwatches: boolean;
   showQuickAdd: boolean;
   showWishlist: boolean;
   showDiscountBadge: boolean;
+  /** Full-width "Add to Cart" button under the price (opens size picker when needed). */
+  showAddToCart: boolean;
   imageBackground: string;
 }
 

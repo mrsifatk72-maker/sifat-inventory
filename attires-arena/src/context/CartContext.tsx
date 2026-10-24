@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { commerce, demo } from "@/config";
 import { isInsideDhaka } from "@/data/bangladesh";
+import { formatPrice } from "@/lib/format";
 import { readStorage, STORAGE_KEYS, writeStorage } from "@/lib/storage";
 import type { CartItem, Coupon, OrderSummary } from "@/types";
 
@@ -77,7 +78,7 @@ export function CartProvider({ children, initialItems = [] }: { children: ReactN
       const found = commerce.demoCoupons.find((c) => c.code.toLowerCase() === code.trim().toLowerCase());
       if (!found) return { ok: false, message: "This code isn't valid. Try a demo code: WELCOME10 or FREESHIP." };
       if (found.minSubtotal && subtotal < found.minSubtotal)
-        return { ok: false, message: `Add items worth ৳${found.minSubtotal - subtotal} more to use this code.` };
+        return { ok: false, message: `Add items worth ${formatPrice(found.minSubtotal - subtotal)} more to use this code.` };
       setCoupon(found);
       return { ok: true, message: `${found.code} applied — ${found.description}` };
     },

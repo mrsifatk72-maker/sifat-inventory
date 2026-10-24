@@ -16,6 +16,7 @@ export const hero: HeroSettings = {
       tagline: "Premium Fashion|Thrift Shopping",
       script: "Quality|Styles|Better|Choices",
       mobileImage: { src: "/images/mockup/hero-rack.jpg", alt: "Clothing rack with shirts and an Attires Arena cap" },
+      desktopImage: { src: "/images/mockup/hero-rack-wide.jpg", alt: "Clothing rack with shirts and an Attires Arena cap" },
       showLogo: true,
       align: "left",
       tone: "light",
@@ -44,24 +45,8 @@ export const hero: HeroSettings = {
       overlay: 30,
     },
   ],
-  side: [
-    {
-      id: "side-new-arrivals",
-      title: "New Arrivals",
-      cta: { label: "Explore", href: "/shop?sort=newest" },
-      image: { src: "/images/banners/side-new-arrivals.svg", alt: "New season jackets" },
-      align: "left",
-      tone: "dark",
-    },
-    {
-      id: "side-footwear",
-      title: "Essential Footwear",
-      cta: { label: "Shop Now", href: "/category/sneakers" },
-      image: { src: "/images/banners/side-footwear.svg", alt: "White sneakers" },
-      align: "left",
-      tone: "dark",
-    },
-  ],
+  // Side tiles are not in the approved desktop mockup; add Banners here to show them beside the slider.
+  side: [] as Banner[],
 };
 
 export const promoBanners: Banner[] = [
@@ -86,10 +71,10 @@ export const promoBanners: Banner[] = [
 ];
 
 export const valueProps: ValueProp[] = [
-  { icon: "sparkles", title: "Premium Quality", description: "Curated collection" },
-  { icon: "banknote", title: "Cash on Delivery", description: "Across Bangladesh" },
-  { icon: "rotate-ccw", title: "Easy Returns", description: "Hassle-free, 7 days" },
-  { icon: "lock", title: "Secure Shopping", description: "Your data is safe" },
+  { icon: "gem", title: "Premium Quality", description: "Carefully curated products" },
+  { icon: "truck", title: "Fast & Reliable Shipping", description: "Across Bangladesh" },
+  { icon: "shield-check", title: "Easy Returns", description: "Hassle-free shopping" },
+  { icon: "headphones", title: "Dedicated Support", description: "We're here to help" },
 ];
 
 /**
@@ -98,12 +83,13 @@ export const valueProps: ValueProp[] = [
  */
 export const homepageSections: HomepageSection[] = [
   { id: "hero", type: "hero", adminLabel: "Hero banner", enabled: true },
+  { id: "categories", type: "categories", adminLabel: "Categories / Brands tabs", enabled: true, title: "Shop by Category", cta: { label: "View All", href: "/categories" } },
+  { id: "brands", type: "brands", adminLabel: "Top Brands", enabled: true, title: "Top Brands", cta: { label: "See All Brands", href: "/brands" } },
+  { id: "featured", type: "featured", adminLabel: "Featured Products", enabled: true, title: "Featured Products", cta: { label: "View All Products", href: "/shop" }, limit: 6 },
   { id: "value-props", type: "value-props", adminLabel: "Value propositions", enabled: true },
-  { id: "categories", type: "categories", adminLabel: "Shop by Category", enabled: true, title: "Shop by Category", cta: { label: "View All", href: "/categories" } },
-  { id: "brands", type: "brands", adminLabel: "Shop by Brand", enabled: true, title: "Shop by Brand", mobileTitle: "Top Brands", cta: { label: "See All", href: "/brands" } },
-  { id: "new-arrivals", type: "new-arrivals", adminLabel: "New Arrivals", enabled: true, title: "New Arrivals", cta: { label: "View All", href: "/shop?sort=newest" }, limit: 6 },
-  { id: "promo-banners", type: "promo-banners", adminLabel: "Promotional banners", enabled: true },
-  { id: "featured", type: "featured", adminLabel: "Featured Products", enabled: true, title: "Featured Products", subtitle: "Hand-picked pieces our stylists love this month.", cta: { label: "Shop All", href: "/shop" }, limit: 8 },
-  { id: "best-sellers", type: "best-sellers", adminLabel: "Best Sellers", enabled: true, title: "Best Sellers", cta: { label: "View All", href: "/shop?sort=rating" }, limit: 4 },
-  { id: "newsletter", type: "newsletter", adminLabel: "Newsletter", enabled: true },
+  // Not in the approved mockups — kept ready; switch on in the Appearance Editor.
+  { id: "new-arrivals", type: "new-arrivals", adminLabel: "New Arrivals", enabled: false, title: "New Arrivals", cta: { label: "View All", href: "/shop?sort=newest" }, limit: 6 },
+  { id: "promo-banners", type: "promo-banners", adminLabel: "Promotional banners", enabled: false },
+  { id: "best-sellers", type: "best-sellers", adminLabel: "Best Sellers", enabled: false, title: "Best Sellers", cta: { label: "View All", href: "/shop?sort=rating" }, limit: 6 },
+  { id: "newsletter", type: "newsletter", adminLabel: "Newsletter", enabled: false },
 ];

@@ -12,5 +12,9 @@ export const mockBrands: Brand[] = [
   { id: "brand-hm", slug: "h-and-m", name: "H&M", description: "Demonstration brand entry.", wordmark: { fontFamily: "script", letterSpacing: "0", weight: 700, italic: true }, sortOrder: 4 },
   { id: "brand-nike", slug: "nike", name: "Nike", description: "Demonstration brand entry.", wordmark: { fontFamily: "condensed", letterSpacing: "0.04em", weight: 800, italic: true, uppercase: true }, sortOrder: 5 },
   { id: "brand-adidas", slug: "adidas", name: "Adidas", description: "Demonstration brand entry.", wordmark: { fontFamily: "sans", letterSpacing: "0", weight: 800 }, sortOrder: 6 },
-  { id: "brand-arena", slug: "arena-studio", name: "Arena Studio", description: "Attires Arena's in-house essentials label (sample).", wordmark: { fontFamily: "serif", letterSpacing: "0.18em", weight: 500, uppercase: true }, sortOrder: 7 },
+  { id: "brand-puma", slug: "puma", name: "Puma", description: "Demonstration brand entry.", wordmark: { fontFamily: "condensed", letterSpacing: "0.02em", weight: 900, uppercase: true }, sortOrder: 7 },
+  { id: "brand-tommy", slug: "tommy-hilfiger", name: "Tommy Hilfiger", description: "Demonstration brand entry.", wordmark: { fontFamily: "sans", letterSpacing: "0.14em", weight: 500, uppercase: true }, sortOrder: 8 },
+  { id: "brand-ck", slug: "calvin-klein", name: "Calvin Klein", description: "Demonstration brand entry.", wordmark: { fontFamily: "sans", letterSpacing: "-0.01em", weight: 400 }, sortOrder: 9 },
+  { id: "brand-levis", slug: "levis", name: "Levi's", description: "Demonstration brand entry.", wordmark: { fontFamily: "sans", letterSpacing: "0", weight: 800, italic: true }, sortOrder: 10 },
+  { id: "brand-arena", slug: "arena-studio", name: "Arena Studio", description: "Attires Arena's in-house essentials label (sample).", wordmark: { fontFamily: "serif", letterSpacing: "0.18em", weight: 500, uppercase: true }, sortOrder: 11 },
 ];

@@ -5,9 +5,9 @@ import { cn } from "@/lib/cn";
 
 export function SectionHeading({ title, subtitle, cta, className, as: Tag = "h2" }: { title: string; subtitle?: string; cta?: CtaLink; className?: string; as?: "h1" | "h2" }) {
   return (
-    <div className={cn("mb-5 flex items-end justify-between gap-4 sm:mb-7", className)}>
+    <div className={cn("mb-3 flex items-end justify-between gap-4 sm:mb-4", className)}>
       <div>
-        <Tag className="font-serif text-[26px] leading-tight text-ink sm:text-[34px]">{title}</Tag>
+        <Tag className="font-display text-[22px] font-semibold leading-tight text-ink sm:text-[26px]">{title}</Tag>
         {subtitle && <p className="mt-1 text-sm text-ink-muted">{subtitle}</p>}
       </div>
       {cta && (

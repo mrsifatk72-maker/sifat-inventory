@@ -1,7 +1,7 @@
 import type { CommerceSettings, DemoSettings } from "@/types";
 
 export const commerce: CommerceSettings = {
-  currencySymbol: "৳",
+  currencySymbol: "BDT ",
   currencyCode: "BDT",
   locale: "en-BD",
   deliveryCharges: { insideDhaka: 80, outsideDhaka: 130 },

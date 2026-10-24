@@ -1,11 +1,11 @@
 import { discountPercent, formatPrice } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
-export function Price({ price, compareAt, size = "md", showBadge = false, className }: { price: number; compareAt?: number; size?: "sm" | "md" | "lg"; showBadge?: boolean; className?: string }) {
+export function Price({ price, compareAt, size = "md", showBadge = false, accent = false, className }: { price: number; compareAt?: number; size?: "sm" | "md" | "lg"; showBadge?: boolean; accent?: boolean; className?: string }) {
   const off = discountPercent(price, compareAt);
   return (
     <div className={cn("flex flex-wrap items-baseline gap-x-2 gap-y-1", className)}>
-      <span className={cn("font-semibold text-ink", size === "lg" ? "text-3xl font-medium text-primary" : size === "md" ? "text-sm" : "text-xs")}>
+      <span className={cn("font-semibold", accent ? "text-primary" : "text-ink", size === "lg" ? "text-3xl font-medium text-primary" : size === "md" ? "text-sm" : "text-xs")}>
         <span className="sr-only">Price: </span>
         {formatPrice(price)}
       </span>

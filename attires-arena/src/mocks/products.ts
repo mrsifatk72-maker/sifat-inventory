@@ -200,7 +200,7 @@ const seeds: ProductSeed[] = [
     rating: [4.7, 96], createdAt: "2026-10-10",
   },
   {
-    id: "p102", slug: "tailored-chinos", name: "Tailored Chinos", style: "pants-chino", category: "pants", brand: "brand-zara",
+    id: "p102", slug: "tailored-chinos", name: "Tailored Chinos", style: "pants-chino", category: "pants", brand: "brand-ck",
     price: 2190, compareAtPrice: 2590, colors: ["khaki", "navy", "stone", "black"],
     shortDescription: "Sharp chinos with a touch of stretch.",
     description: "Our go-to chino, tailored through the leg with a little stretch so they move with you from desk to dinner.",
@@ -209,7 +209,7 @@ const seeds: ProductSeed[] = [
     rating: [4.6, 112], createdAt: "2026-05-02",
   },
   {
-    id: "p103", slug: "straight-denim", name: "Straight Denim", style: "pants-denim", category: "pants", brand: "brand-hm",
+    id: "p103", slug: "straight-denim", name: "Straight Denim", style: "pants-denim", category: "pants", brand: "brand-levis",
     price: 2590, colors: ["indigo", "black"],
     shortDescription: "A timeless straight jean in rigid-feel denim.",
     description: "Classic five-pocket denim with contrast stitching and a straight leg that never dates.",
@@ -218,7 +218,7 @@ const seeds: ProductSeed[] = [
     rating: [4.5, 64], createdAt: "2026-04-18",
   },
   {
-    id: "p104", slug: "pleated-trousers", name: "Pleated Trousers", style: "pants-pleated", category: "pants", brand: "brand-gucci",
+    id: "p104", slug: "pleated-trousers", name: "Pleated Trousers", style: "pants-pleated", category: "pants", brand: "brand-tommy",
     price: 2890, colors: ["charcoal", "stone", "brown"],
     shortDescription: "Double pleats for an elegant, roomy leg.",
     description: "Front pleats add room and movement for a refined, tailored drape. Pair with knitwear or a tucked-in shirt.",
@@ -256,7 +256,7 @@ const seeds: ProductSeed[] = [
     rating: [4.6, 58], createdAt: "2026-09-12",
   },
   {
-    id: "p203", slug: "suede-runner", name: "Suede Runner", style: "sneaker-runner", category: "sneakers", brand: "brand-nike",
+    id: "p203", slug: "suede-runner", name: "Suede Runner", style: "sneaker-runner", category: "sneakers", brand: "brand-puma",
     price: 4590, colors: ["stone", "navy", "grey"],
     shortDescription: "Retro runner in soft suede and mesh.",
     description: "A lightweight retro runner with suede overlays, breathable mesh and a cushioned foam midsole.",

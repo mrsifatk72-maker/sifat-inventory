@@ -6,7 +6,7 @@ import { isValidEmail } from "@/lib/validation";
 import { subscribeNewsletterAction } from "@/services/actions";
 import { cn } from "@/lib/cn";
 
-export function NewsletterForm({ tone = "light", className }: { tone?: "light" | "dark"; className?: string }) {
+export function NewsletterForm({ tone = "light", className, compact = false }: { tone?: "light" | "dark"; className?: string; compact?: boolean }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
@@ -33,14 +33,14 @@ export function NewsletterForm({ tone = "light", className }: { tone?: "light" |
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Your email address"
-          className={cn("h-12 min-w-0 flex-1 bg-transparent px-4 text-sm focus:outline-none", dark ? "text-white placeholder:text-white/50" : "text-ink placeholder:text-ink-muted/70")}
+          className={cn("min-w-0 flex-1 bg-transparent px-4 text-sm focus:outline-none", compact ? "h-10 text-xs" : "h-12", dark ? "text-white placeholder:text-white/50" : "text-ink placeholder:text-ink-muted/70")}
         />
         <button
           type="submit"
           disabled={pending}
-          className={cn("inline-flex items-center gap-2 px-5 text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-60", dark ? "bg-white text-primary hover:bg-white/90" : "bg-primary text-white hover:bg-primary-dark")}
+          className={cn("inline-flex items-center gap-2 px-5 text-xs font-semibold transition-colors disabled:opacity-60", !compact && "uppercase tracking-wider", dark ? "bg-white text-primary hover:bg-white/90" : "bg-primary text-white hover:bg-primary-dark")}
         >
-          Subscribe <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+          Subscribe {!compact && <ArrowRight className="h-3.5 w-3.5" aria-hidden />}
         </button>
       </div>
       {status && (

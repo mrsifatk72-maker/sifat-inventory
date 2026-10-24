@@ -11,6 +11,7 @@ const toggles: { key: keyof ProductCardSettings; label: string }[] = [
   { key: "showQuickAdd", label: "Show Quick Add (desktop hover)" },
   { key: "showWishlist", label: "Show wishlist heart" },
   { key: "showDiscountBadge", label: "Show discount badge" },
+  { key: "showAddToCart", label: "Show Add to Cart button" },
 ];
 
 export function ProductCardPanel({ settings, update }: PanelProps) {
@@ -18,7 +19,7 @@ export function ProductCardPanel({ settings, update }: PanelProps) {
   return (
     <>
       <Group title="Product card" description="Applies to every product grid and rail.">
-        <SelectField label="Image shape" value={c.imageAspect} onChange={(v) => update((d) => void (d.productCard.imageAspect = v))} options={[{ value: "portrait", label: "Portrait 4:5" }, { value: "square", label: "Square 1:1" }]} />
+        <SelectField label="Image shape" value={c.imageAspect} onChange={(v) => update((d) => void (d.productCard.imageAspect = v))} options={[{ value: "portrait", label: "Portrait 4:5" }, { value: "square", label: "Square 1:1" }, { value: "landscape", label: "Landscape 4:3" }]} />
         <ColorField label="Image background" value={c.imageBackground} onChange={(v) => update((d) => void (d.productCard.imageBackground = v))} />
         <div className="space-y-3 pt-1">
           {toggles.map((t) => (

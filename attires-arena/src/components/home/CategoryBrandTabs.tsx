@@ -18,7 +18,7 @@ export function CategoryBrandTabs({ categories, brands }: { categories: Category
   ];
   return (
     <div>
-      <div role="tablist" aria-label="Browse by" className="grid grid-cols-2 rounded-[10px] bg-[#F1EFEB] p-0">
+      <div role="tablist" aria-label="Browse by" className="grid grid-cols-2 rounded-[10px] bg-[#F1EFEB] p-0 sm:max-w-[460px] sm:rounded-md">
         {tabs.map((t) => (
           <button
             key={t.key}
@@ -28,7 +28,7 @@ export function CategoryBrandTabs({ categories, brands }: { categories: Category
             aria-selected={tab === t.key}
             aria-controls={`${id}-${t.key}`}
             onClick={() => setTab(t.key)}
-            className={cn("h-[40px] rounded-[10px] text-[15px] transition-colors", tab === t.key ? "bg-primary font-medium text-white shadow-sm" : "text-ink-muted")}
+            className={cn("h-[40px] rounded-[10px] text-[15px] sm:h-[34px] sm:rounded-md sm:text-[14px] transition-colors", tab === t.key ? "bg-primary font-medium text-white shadow-sm" : "text-ink-muted")}
           >
             {t.label}
           </button>
@@ -36,13 +36,13 @@ export function CategoryBrandTabs({ categories, brands }: { categories: Category
       </div>
 
       <div id={`${id}-categories`} role="tabpanel" aria-labelledby={`${id}-categories-tab`} hidden={tab !== "categories"}>
-        <ul className="mt-3 grid grid-cols-3 gap-2">
+        <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-4">
           {categories.map((c) => {
             const img = c.thumbnail ?? c.image;
             return (
               <li key={c.id}>
                 <Link href={`/category/${c.slug}`} className="group block overflow-hidden rounded-xl bg-surface shadow-[0_2px_10px_-4px_rgba(23,23,23,0.18)] ring-1 ring-ink/[0.04] transition-transform duration-200 active:scale-[0.98]">
-                  <span className="relative block aspect-[3/2] overflow-hidden bg-[#F4F2F0]">
+                  <span className="relative block aspect-[3/2] overflow-hidden bg-[#F4F2F0] sm:aspect-[7/3]">
                     <SmartImage src={img.src} alt={img.alt} fill sizes="34vw" className="object-cover transition-[transform,filter] duration-[400ms] ease-out group-hover:scale-105 group-hover:brightness-[1.04] group-active:scale-105" />
                   </span>
                   <span className="flex items-center justify-between gap-1 px-2.5 py-2">
@@ -59,7 +59,7 @@ export function CategoryBrandTabs({ categories, brands }: { categories: Category
       </div>
 
       <div id={`${id}-brands`} role="tabpanel" aria-labelledby={`${id}-brands-tab`} hidden={tab !== "brands"}>
-        <ul className="mt-4 grid grid-cols-3 gap-2.5">
+        <ul className="mt-3 grid grid-cols-3 gap-2.5 sm:grid-cols-6 sm:gap-4">
           {brands.slice(0, 6).map((b) => (
             <li key={b.id}>
               <Link href={`/brand/${b.slug}`} className="flex h-[92px] flex-col items-center justify-center gap-2 rounded-xl bg-surface px-2 shadow-[0_2px_10px_-4px_rgba(23,23,23,0.18)] ring-1 ring-ink/[0.04]">
@@ -85,16 +85,16 @@ export function CategoryBrandTabs({ categories, brands }: { categories: Category
 /** Phone-only compact row of brand tiles ("Top Brands" in the mobile mockup). */
 export function TopBrandsRow({ brands }: { brands: Brand[] }) {
   return (
-    <ul className="grid grid-cols-6 gap-1.5">
-      {brands.slice(0, 6).map((b) => (
-        <li key={b.id}>
-          <Link href={`/brand/${b.slug}`} aria-label={b.name} className="flex aspect-[11/10] items-center justify-center overflow-hidden rounded-lg bg-surface px-1 shadow-[0_2px_8px_-4px_rgba(23,23,23,0.2)] ring-1 ring-ink/[0.04]">
+    <ul className="grid grid-cols-6 gap-1.5 lg:grid-cols-10 lg:gap-3">
+      {brands.slice(0, 10).map((b, i) => (
+        <li key={b.id} className={i >= 6 ? "hidden lg:block" : undefined}>
+          <Link href={`/brand/${b.slug}`} aria-label={b.name} className="flex aspect-[11/10] items-center justify-center overflow-hidden rounded-lg bg-surface px-1 transition-shadow duration-300 hover:shadow-soft lg:aspect-[2/1] lg:rounded-md shadow-[0_2px_8px_-4px_rgba(23,23,23,0.2)] ring-1 ring-ink/[0.04]">
             {b.logo ? (
               <span className="relative h-7 w-full">
                 <SmartImage src={b.logo.src} alt="" fill sizes="16vw" className="object-contain" />
               </span>
             ) : (
-              <BrandWordmark brand={b} compact className={b.name.length > 5 ? "text-[min(2.5vw,11px)]" : "text-[min(3.4vw,15px)]"} />
+              <BrandWordmark brand={b} compact className={b.name.length > 5 ? "text-[min(2.5vw,11px)] lg:text-[13px]" : "text-[min(3.4vw,15px)] lg:text-[20px]"} />
             )}
           </Link>
         </li>

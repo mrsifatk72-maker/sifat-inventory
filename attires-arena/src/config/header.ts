@@ -3,20 +3,18 @@ import type { HeaderSettings } from "@/types";
 export const header: HeaderSettings = {
   announcement: {
     enabled: true,
-    items: ["Free delivery on orders over ৳2,000", "Cash on Delivery available", "Easy 7-day returns"],
-    rightLinks: [
-      { label: "Track Order", href: "/track-order" },
-      { label: "Help", href: "/faq" },
-    ],
+    left: "Free Shipping on Orders Over BDT 2,000",
+    items: ["Authentic Brands", "Premium Quality", "Easy Returns"],
+    promo: "Get 10% Off on Your First Order",
+    rightLinks: [],
   },
   searchPlaceholder: "Search for fashion, brands, styles...",
   sticky: true,
   navigation: [
     { label: "Home", href: "/" },
-    { label: "Shop", href: "/shop" },
     {
-      label: "Categories",
-      href: "/categories",
+      label: "Men",
+      href: "/shop",
       children: [
         { label: "Shirts", href: "/category/shirts" },
         { label: "Pants", href: "/category/pants" },
@@ -26,8 +24,28 @@ export const header: HeaderSettings = {
         { label: "Watches", href: "/category/watches" },
       ],
     },
-    { label: "Brands", href: "/brands" },
     { label: "New Arrivals", href: "/shop?sort=newest" },
-    { label: "Offers", href: "/shop?offers=1", highlight: true },
+    {
+      label: "Brands",
+      href: "/brands",
+      children: [
+        { label: "Gucci", href: "/brand/gucci" },
+        { label: "Zara", href: "/brand/zara" },
+        { label: "Lacoste", href: "/brand/lacoste" },
+        { label: "Nike", href: "/brand/nike" },
+        { label: "Adidas", href: "/brand/adidas" },
+        { label: "All Brands", href: "/brands" },
+      ],
+    },
+    { label: "Deals", href: "/shop?offers=1" },
+    {
+      label: "About",
+      href: "/about",
+      children: [
+        { label: "Our Story", href: "/about" },
+        { label: "Contact Us", href: "/contact" },
+        { label: "FAQ", href: "/faq" },
+      ],
+    },
   ],
 };

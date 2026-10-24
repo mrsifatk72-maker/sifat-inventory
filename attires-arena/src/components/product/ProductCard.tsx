@@ -1,13 +1,14 @@
 "use client";
 
-import { Eye } from "lucide-react";
+import { Eye, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Badge, Price, Rating, SmartImage } from "@/components/ui";
 import { useStorefront } from "@/context/StorefrontContext";
 import { cn } from "@/lib/cn";
 import { discountPercent } from "@/lib/format";
-import { imagesForColor, totalStock } from "@/lib/product";
+import { findVariant, firstAvailableSize, imagesForColor, toCartLine, totalStock } from "@/lib/product";
+import { useCart } from "@/context/CartContext";
 import type { Product } from "@/types";
 import { ColorSwatches } from "./ColorSwatches";
 import { QuickAddModal } from "./QuickAddModal";
@@ -25,6 +26,22 @@ export function ProductCard({ product, brandName, priority, sizes = "(min-width:
   const { productCard: cfg } = useStorefront();
   const [colorId, setColorId] = useState(product.colors[0]?.id);
   const [quickAdd, setQuickAdd] = useState(false);
+  const { addItem, openDrawer } = useCart();
+
+  /** One-size items go straight to the cart; sized items open the size picker (Quick View). */
+  const addToCart = () => {
+    // Prefer the shown colour, then any in-stock colour (one-size items only).
+    const colors = [colorId, ...product.colors.map((c) => c.id)].filter((c): c is string => Boolean(c));
+    const color = product.sizes.length === 1 ? colors.find((c) => firstAvailableSize(product, c)) : undefined;
+    const size = color ? firstAvailableSize(product, color) : undefined;
+    const variant = color && size ? findVariant(product, color, size) : undefined;
+    if (variant && variant.stock > 0) {
+      addItem(toCartLine(product, variant, brandName));
+      openDrawer();
+    } else {
+      setQuickAdd(true);
+    }
+  };
   const images = imagesForColor(product, colorId);
   const main = images[0];
   const hover = images[1];
@@ -34,7 +51,7 @@ export function ProductCard({ product, brandName, priority, sizes = "(min-width:
 
   return (
     <article className={cn("group relative", className)}>
-      <div className={cn("relative overflow-hidden rounded-card", cfg.imageAspect === "portrait" ? "aspect-[4/5]" : "aspect-square")} style={{ backgroundColor: cfg.imageBackground }}>
+      <div className={cn("relative overflow-hidden rounded-card", cfg.imageAspect === "portrait" ? "aspect-[4/5]" : cfg.imageAspect === "landscape" ? "aspect-[4/3]" : "aspect-square")} style={{ backgroundColor: cfg.imageBackground }}>
         <Link href={href} aria-label={product.name} className="absolute inset-0">
           {/* Hover (pointer devices only): gentle 1.05 zoom + cross-fade to the secondary image. */}
           <span className="absolute inset-0 transition-transform duration-[450ms] ease-out will-change-transform [@media(hover:hover)]:group-hover:scale-[1.05]">
@@ -74,9 +91,20 @@ export function ProductCard({ product, brandName, priority, sizes = "(min-width:
             {product.name}
           </Link>
         </h3>
-        <Price price={product.price} compareAt={product.compareAtPrice} />
+        <Price price={product.price} compareAt={product.compareAtPrice} accent={cfg.showAddToCart} />
         {cfg.showRating && <Rating value={product.rating.average} count={product.rating.count} />}
         {cfg.showColorSwatches && product.colors.length > 1 && <ColorSwatches colors={product.colors} activeId={colorId} onHover={setColorId} />}
+        {cfg.showAddToCart && (
+          <button
+            type="button"
+            onClick={addToCart}
+            disabled={soldOut}
+            aria-label={soldOut ? `${product.name} is sold out` : `Add ${product.name} to cart`}
+            className="group/btn mt-1 flex h-9 w-full items-center justify-center gap-2 rounded-control bg-primary text-xs font-medium text-white transition-colors duration-300 hover:bg-primary-dark disabled:cursor-not-allowed disabled:bg-ink/30"
+          >
+            <ShoppingCart className="h-3.5 w-3.5" aria-hidden /> {soldOut ? "Sold Out" : "Add to Cart"}
+          </button>
+        )}
       </div>
       <QuickAddModal open={quickAdd} product={product} brandName={brandName} initialColorId={colorId} onClose={() => setQuickAdd(false)} />
     </article>
